@@ -7,7 +7,7 @@
   "authors": [],
   "contact": {},
   "license": "MIT",
-  "icon": "assets/vanish/icon.png",
+  "icon": "icon.png",
   "environment": "server",
   "entrypoints": {
     "main": [
@@ -20,6 +20,6 @@
   "depends": {
     "fabricloader": ">=0.10.8",
     "fabric": "*",
-    "minecraft": "1.17-alpha.20.48.a"
+    "minecraft": "1.16.4"
   }
 }
