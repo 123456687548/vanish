@@ -6,7 +6,8 @@
   "mixins": [
     "PlayerListS2CPacketMixin",
     "ServerMetadataMixin",
-    "ServerPlayNetworkHandlerMixin"
+    "ServerPlayNetworkHandlerMixin",
+    "ServerWorldMixin"
   ],
   "client": [
   ],
