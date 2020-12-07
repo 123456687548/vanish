@@ -19,11 +19,12 @@ public class ServerWorldMixin {
     @Inject(at = @At("HEAD"), cancellable = true, method = "playSound")
     private void onPlaySound(@Nullable PlayerEntity player, double x, double y, double z, SoundEvent sound, SoundCategory category, float volume, float pitch, CallbackInfo ci) {
         if (!Vanish.INSTANCE.isActive()) return;
+        if(player == null) return;
 
         AtomicBoolean cancel = new AtomicBoolean(false);
 
-        Vanish.INSTANCE.getVanishedPlayers().forEach(playerEntity -> {
-            if (playerEntity.equals(player)) {
+        Vanish.INSTANCE.getVanishedPlayerNames().forEach(playerEntity -> {
+            if (playerEntity.equals(player.getEntityName())) {
                 cancel.set(true);
             }
         });

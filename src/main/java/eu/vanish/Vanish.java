@@ -3,16 +3,14 @@ package eu.vanish;
 import com.mojang.authlib.GameProfile;
 import net.fabricmc.fabric.api.command.v1.CommandRegistrationCallback;
 import net.minecraft.network.MessageType;
-import net.minecraft.network.packet.s2c.play.EntitiesDestroyS2CPacket;
-import net.minecraft.network.packet.s2c.play.GameMessageS2CPacket;
-import net.minecraft.network.packet.s2c.play.PlayerListS2CPacket;
+import net.minecraft.network.packet.s2c.play.*;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.LiteralText;
+import net.minecraft.text.TranslatableText;
+import net.minecraft.util.Formatting;
 
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.UUID;
 
 import static net.minecraft.server.command.CommandManager.literal;
@@ -24,13 +22,13 @@ public enum Vanish {
     private boolean active = false;
 
     private HashSet<UUID> vanishedPlayersUUID;
-    private List<ServerPlayerEntity> vanishedPlayers;
+    private HashSet<String> vanishedPlayerNames;
 
     private MinecraftServer server = null;
 
     public void init() {
         vanishedPlayersUUID = new HashSet<>();
-        vanishedPlayers = new ArrayList<>();
+        vanishedPlayerNames = new HashSet<>();
 
         CommandRegistrationCallback.EVENT.register((dispatcher, dedicated) ->
                 dispatcher.register(literal("vanish")
@@ -41,18 +39,25 @@ public enum Vanish {
 
                             server = context.getSource().getMinecraftServer();
 
-                            active = true;
-
                             if (vanishedPlayersUUID.contains(profile.getId())) {
                                 vanishedPlayersUUID.remove(profile.getId());
-                                vanishedPlayers.remove(player);
+                                vanishedPlayerNames.remove(player.getEntityName());
                                 server.getPlayerManager().sendToAll(new PlayerListS2CPacket(PlayerListS2CPacket.Action.ADD_PLAYER, player));
-                                server.getPlayerManager().sendToAll(new GameMessageS2CPacket(new LiteralText(String.format("\u00a7e%s joined the game", player.getEntityName())), MessageType.CHAT, NIL_UUID));
+                                server.getPlayerManager().sendToAll(new GameMessageS2CPacket(new TranslatableText("multiplayer.player.joined", new LiteralText(player.getEntityName())).formatted(Formatting.YELLOW), MessageType.CHAT, NIL_UUID));
+                                server.getPlayerManager().getPlayerList().forEach(playerEntity -> {
+                                    if (!playerEntity.equals(player)) {
+                                        playerEntity.networkHandler.sendPacket(new PlayerSpawnS2CPacket(player));
+                                    }
+                                });
+                                if(vanishedPlayersUUID.isEmpty()){
+                                    active = false;
+                                }
                             } else {
+                                active = true;
                                 vanishedPlayersUUID.add(profile.getId());
-                                vanishedPlayers.add(player);
+                                vanishedPlayerNames.add(player.getEntityName());
                                 server.getPlayerManager().sendToAll(new PlayerListS2CPacket(PlayerListS2CPacket.Action.REMOVE_PLAYER, player));
-                                server.getPlayerManager().sendToAll(new GameMessageS2CPacket(new LiteralText(String.format("\u00a7e%s left the game", player.getEntityName())), MessageType.CHAT, NIL_UUID));
+                                server.getPlayerManager().sendToAll(new GameMessageS2CPacket(new TranslatableText("multiplayer.player.left", new LiteralText(player.getEntityName())).formatted(Formatting.YELLOW), MessageType.CHAT, NIL_UUID));
                                 server.getPlayerManager().getPlayerList().forEach(playerEntity -> {
                                     if (!playerEntity.equals(player)) {
                                         playerEntity.networkHandler.sendPacket(new EntitiesDestroyS2CPacket(player.getEntityId()));
@@ -69,8 +74,8 @@ public enum Vanish {
         return vanishedPlayersUUID;
     }
 
-    public List<ServerPlayerEntity> getVanishedPlayers() {
-        return vanishedPlayers;
+    public HashSet<String> getVanishedPlayerNames() {
+        return vanishedPlayerNames;
     }
 
     public MinecraftServer getServer() {
