@@ -7,7 +7,9 @@
     "ClientConnectionMixin",
     "GameMessageS2CPacketMixin",
     "PlayerListS2CPacketMixin",
+    "PlayerManagerMixin",
     "ServerMetadataMixin",
+    "ServerPlayNetworkHandlerMixin",
     "ServerWorldMixin"
   ],
   "client": [

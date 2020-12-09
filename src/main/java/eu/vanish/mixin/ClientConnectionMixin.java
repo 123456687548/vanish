@@ -1,6 +1,7 @@
 package eu.vanish.mixin;
 
 import eu.vanish.Vanish;
+import eu.vanish.data.VanishedPlayer;
 import eu.vanish.mixinterface.IGameMessageS2CPacket;
 import eu.vanish.mixinterface.IPlayerListS2CPacket;
 import io.netty.util.concurrent.Future;
@@ -37,15 +38,15 @@ public class ClientConnectionMixin {
     }
 
     private boolean shouldStopLeaveJoinMessage(Packet<?> packet) {
-        if(((GameMessageS2CPacket) packet).getLocation().equals(CHAT)) return false;
+        if (((GameMessageS2CPacket) packet).getLocation().equals(CHAT)) return false;
         Text textMessage = ((IGameMessageS2CPacket) packet).getMessageOnServer();
-        if (textMessage instanceof TranslatableText){
+        if (textMessage instanceof TranslatableText) {
             TranslatableText message = (TranslatableText) textMessage;
             String key = message.getKey();
-            if(key.equals("multiplayer.player.joined") || key.equals("multiplayer.player.left")) {
+            if (key.equals("multiplayer.player.joined") || key.equals("multiplayer.player.left")) {
                 String messageString = message.toString();
-                for (String vanishedPlayer : Vanish.INSTANCE.getVanishedPlayerNames()) {
-                    if(messageString.contains(vanishedPlayer)){
+                for (VanishedPlayer vanishedPlayer : Vanish.INSTANCE.getVanishedPlayers()) {
+                    if (messageString.contains(vanishedPlayer.getName())) {
                         return true;
                     }
                 }
@@ -61,6 +62,10 @@ public class ClientConnectionMixin {
 
         if (action.equals(PlayerListS2CPacket.Action.REMOVE_PLAYER) || action.equals(PlayerListS2CPacket.Action.UPDATE_LATENCY)) return;
 
-        playerListS2CPacket.getEntriesOnServer().removeIf(entry -> Vanish.INSTANCE.getVanishedPlayersUUID().contains(entry.getProfile().getId()));
+        playerListS2CPacket.getEntriesOnServer().removeIf(entry ->
+                Vanish.INSTANCE.getVanishedPlayers().stream().anyMatch(vanishedPlayer ->
+                        vanishedPlayer.getUuid().equals(entry.getProfile().getId())
+                )
+        );
     }
 }
