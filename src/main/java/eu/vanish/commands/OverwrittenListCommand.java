@@ -16,7 +16,7 @@ import static net.minecraft.server.command.CommandManager.literal;
 
 public final class OverwrittenListCommand {
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
-        dispatcher.register(literal("listf").executes(commandContext -> {
+        dispatcher.register(literal("list").executes(commandContext -> {
             return executeNames(commandContext.getSource());
         }).then(literal("uuids").executes((commandContext) -> {
             return executeUuids(commandContext.getSource());
