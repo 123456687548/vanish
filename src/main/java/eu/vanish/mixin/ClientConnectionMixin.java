@@ -60,7 +60,7 @@ public class ClientConnectionMixin {
         IPlayerListS2CPacket playerListS2CPacket = (IPlayerListS2CPacket) packet;
         PlayerListS2CPacket.Action action = playerListS2CPacket.getActionOnServer();
 
-        if (action.equals(PlayerListS2CPacket.Action.REMOVE_PLAYER) || action.equals(PlayerListS2CPacket.Action.UPDATE_LATENCY)) return;
+        if (action.equals(PlayerListS2CPacket.Action.REMOVE_PLAYER) || action.equals(PlayerListS2CPacket.Action.UPDATE_LATENCY) || action.equals(PlayerListS2CPacket.Action.UPDATE_GAME_MODE)) return;
 
         playerListS2CPacket.getEntriesOnServer().removeIf(entry ->
                 Vanish.INSTANCE.getVanishedPlayers().stream().anyMatch(vanishedPlayer ->
