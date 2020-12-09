@@ -25,6 +25,15 @@ public enum Vanish {
         registerCommands();
     }
 
+    private void registerCommands() {
+        CommandRegistrationCallback.EVENT.register((dispatcher, dedicated) -> {
+                    VanishCommand.register(dispatcher);
+                    OverwrittenListCommand.register(dispatcher);
+                    OverwrittenMsgCommand.register(dispatcher);
+                }
+        );
+    }
+
     public void onDisconnect(ServerPlayerEntity player) {
         setServer(player.getServer());
 
@@ -51,15 +60,6 @@ public enum Vanish {
 
     public void increaseAmountOfOnlineVanishedPlayers() {
         amountOfVanishedPlayersOnline++;
-    }
-
-    private void registerCommands() {
-        CommandRegistrationCallback.EVENT.register((dispatcher, dedicated) -> {
-                    VanishCommand.register(dispatcher);
-                    OverwrittenListCommand.register(dispatcher);
-                    OverwrittenMsgCommand.register(dispatcher);
-                }
-        );
     }
 
     public HashSet<VanishedPlayer> getVanishedPlayers() {
