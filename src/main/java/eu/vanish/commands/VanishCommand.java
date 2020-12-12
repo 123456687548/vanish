@@ -73,7 +73,7 @@ public final class VanishCommand {
                 player.networkHandler.sendPacket(new PlayerListS2CPacket(PlayerListS2CPacket.Action.REMOVE_PLAYER, vanishStatusEntity));
             }
 
-            player.networkHandler.sendPacket(new GameMessageS2CPacket(new LiteralText("Your aren't Vanished anymore").formatted(Formatting.RED), MessageType.CHAT, NIL_UUID));
+            player.networkHandler.sendPacket(new GameMessageS2CPacket(new LiteralText("You are no longer Vanished").formatted(Formatting.RED), MessageType.CHAT, NIL_UUID));
 
             if (vanishedPlayers.isEmpty()) {
                 vanish.setActive(false);
@@ -95,7 +95,7 @@ public final class VanishCommand {
             if (vanishStatusEntity != null) {
                 player.networkHandler.sendPacket(new PlayerListS2CPacket(PlayerListS2CPacket.Action.ADD_PLAYER, vanishStatusEntity));
             }
-            player.networkHandler.sendPacket(new GameMessageS2CPacket(new LiteralText("Your are now Vanished").formatted(Formatting.GREEN), MessageType.CHAT, NIL_UUID));
+            player.networkHandler.sendPacket(new GameMessageS2CPacket(new LiteralText("You are now Vanished").formatted(Formatting.GREEN), MessageType.CHAT, NIL_UUID));
         }
         return 1;
     }
