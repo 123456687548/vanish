@@ -1,5 +1,6 @@
 package eu.vanish.commands;
 
+import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import eu.vanish.Vanish;
@@ -11,18 +12,24 @@ import net.minecraft.network.packet.s2c.play.PlayerListS2CPacket;
 import net.minecraft.network.packet.s2c.play.PlayerSpawnS2CPacket;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.network.ServerPlayerInteractionManager;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.LiteralText;
 import net.minecraft.text.TranslatableText;
 import net.minecraft.util.Formatting;
 
 import java.util.HashSet;
+import java.util.UUID;
 
 import static net.minecraft.server.command.CommandManager.literal;
 import static net.minecraft.util.Util.NIL_UUID;
 
 public final class VanishCommand {
-
     private static final Vanish vanish = Vanish.INSTANCE;
+
+    private static ServerWorld world = null;
+
+    private static ServerPlayerEntity vanishStatusEntity = null;
 
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
         LiteralCommandNode<ServerCommandSource> commandNode = dispatcher.register(literal("vanish")
@@ -33,6 +40,18 @@ public final class VanishCommand {
 
     private static int vanish(ServerPlayerEntity player) {
         vanish.setServer(player.getServer());
+
+        if (world == null) {
+            world = vanish.getServer().getWorlds().iterator().next();
+        }
+        if (vanishStatusEntity == null && world != null) {
+            vanishStatusEntity = new ServerPlayerEntity(
+                    vanish.getServer()
+                    , world
+                    , new GameProfile(UUID.randomUUID(), " You're Vanished")
+                    , new ServerPlayerInteractionManager(world)
+            );
+        }
 
         HashSet<VanishedPlayer> vanishedPlayers = vanish.getVanishedPlayers();
         VanishedPlayer vanishedPlayer = new VanishedPlayer(player);
@@ -50,7 +69,11 @@ public final class VanishCommand {
                 }
             });
 
-            player.networkHandler.sendPacket(new GameMessageS2CPacket(new LiteralText("Your aren't Vanished anymore").formatted(Formatting.RED), MessageType.CHAT, NIL_UUID));
+            if (vanishStatusEntity != null) {
+                player.networkHandler.sendPacket(new PlayerListS2CPacket(PlayerListS2CPacket.Action.REMOVE_PLAYER, vanishStatusEntity));
+            }
+
+            player.networkHandler.sendPacket(new GameMessageS2CPacket(new LiteralText("You are no longer Vanished").formatted(Formatting.RED), MessageType.CHAT, NIL_UUID));
 
             if (vanishedPlayers.isEmpty()) {
                 vanish.setActive(false);
@@ -69,7 +92,10 @@ public final class VanishCommand {
                 }
             });
 
-            player.networkHandler.sendPacket(new GameMessageS2CPacket(new LiteralText("Your are now Vanished").formatted(Formatting.GREEN), MessageType.CHAT, NIL_UUID));
+            if (vanishStatusEntity != null) {
+                player.networkHandler.sendPacket(new PlayerListS2CPacket(PlayerListS2CPacket.Action.ADD_PLAYER, vanishStatusEntity));
+            }
+            player.networkHandler.sendPacket(new GameMessageS2CPacket(new LiteralText("You are now Vanished").formatted(Formatting.GREEN), MessageType.CHAT, NIL_UUID));
         }
         return 1;
     }
