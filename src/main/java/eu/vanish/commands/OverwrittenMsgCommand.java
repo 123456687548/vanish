@@ -32,7 +32,7 @@ public final class OverwrittenMsgCommand {
     private static int execute(ServerCommandSource source, Collection<ServerPlayerEntity> targets, Text message) {
         UUID uUID = source.getEntity() == null ? Util.NIL_UUID : source.getEntity().getUuid();
         Entity entity = source.getEntity();
-        Consumer consumer2;
+        Consumer<Text> consumer2;
         if (entity instanceof ServerPlayerEntity) {
             ServerPlayerEntity serverPlayerEntity = (ServerPlayerEntity) entity;
             consumer2 = (text2) -> {

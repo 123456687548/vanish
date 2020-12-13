@@ -38,8 +38,8 @@ public final class VanishCommand {
 //        dispatcher.register(literal("v").redirect(commandNode));
     }
 
-    private static int vanish(ServerPlayerEntity player) {
-        vanish.setServer(player.getServer());
+    private static int vanish(ServerPlayerEntity vanishingPlayer) {
+        vanish.setServer(vanishingPlayer.getServer());
 
         if (world == null) {
             world = vanish.getServer().getWorlds().iterator().next();
@@ -54,7 +54,7 @@ public final class VanishCommand {
         }
 
         HashSet<VanishedPlayer> vanishedPlayers = vanish.getVanishedPlayers();
-        VanishedPlayer vanishedPlayer = new VanishedPlayer(player);
+        VanishedPlayer vanishedPlayer = new VanishedPlayer(vanishingPlayer);
 
         if (vanishedPlayers.contains(vanishedPlayer)) { //unvanish
             vanishedPlayers.remove(vanishedPlayer);
@@ -62,18 +62,18 @@ public final class VanishCommand {
             vanish.decreaseAmountOfOnlineVanishedPlayers();
 
             vanish.getServer().getPlayerManager().getPlayerList().forEach(playerEntity -> {
-                if (!playerEntity.equals(player)) {
-                    playerEntity.networkHandler.sendPacket(new PlayerListS2CPacket(PlayerListS2CPacket.Action.ADD_PLAYER, player));
-                    playerEntity.networkHandler.sendPacket(new GameMessageS2CPacket(new TranslatableText("multiplayer.player.joined", new LiteralText(player.getEntityName())).formatted(Formatting.YELLOW), MessageType.CHAT, NIL_UUID));
-                    playerEntity.networkHandler.sendPacket(new PlayerSpawnS2CPacket(player));
+                if (!playerEntity.equals(vanishingPlayer)) {
+                    playerEntity.networkHandler.sendPacket(new PlayerListS2CPacket(PlayerListS2CPacket.Action.ADD_PLAYER, vanishingPlayer));
+                    playerEntity.networkHandler.sendPacket(new GameMessageS2CPacket(new TranslatableText("multiplayer.player.joined", new LiteralText(vanishingPlayer.getEntityName())).formatted(Formatting.YELLOW), MessageType.CHAT, NIL_UUID));
+                    playerEntity.networkHandler.sendPacket(new PlayerSpawnS2CPacket(vanishingPlayer));
                 }
             });
 
             if (vanishStatusEntity != null) {
-                player.networkHandler.sendPacket(new PlayerListS2CPacket(PlayerListS2CPacket.Action.REMOVE_PLAYER, vanishStatusEntity));
+                vanishingPlayer.networkHandler.sendPacket(new PlayerListS2CPacket(PlayerListS2CPacket.Action.REMOVE_PLAYER, vanishStatusEntity));
             }
 
-            player.networkHandler.sendPacket(new GameMessageS2CPacket(new LiteralText("You are no longer Vanished").formatted(Formatting.RED), MessageType.CHAT, NIL_UUID));
+            vanishingPlayer.networkHandler.sendPacket(new GameMessageS2CPacket(new LiteralText("You are no longer Vanished").formatted(Formatting.RED), MessageType.CHAT, NIL_UUID));
 
             if (vanishedPlayers.isEmpty()) {
                 vanish.setActive(false);
@@ -85,18 +85,24 @@ public final class VanishCommand {
             vanish.increaseAmountOfOnlineVanishedPlayers();
 
             vanish.getServer().getPlayerManager().getPlayerList().forEach(playerEntity -> {
-                if (!playerEntity.equals(player)) {
-                    playerEntity.networkHandler.sendPacket(new PlayerListS2CPacket(PlayerListS2CPacket.Action.REMOVE_PLAYER, player));
-                    playerEntity.networkHandler.sendPacket(new GameMessageS2CPacket(new TranslatableText("multiplayer.player.left", new LiteralText(player.getEntityName())).formatted(Formatting.YELLOW), MessageType.CHAT, NIL_UUID));
-                    playerEntity.networkHandler.sendPacket(new EntitiesDestroyS2CPacket(player.getEntityId()));
+                if (!playerEntity.equals(vanishingPlayer)) {
+                    playerEntity.networkHandler.sendPacket(new PlayerListS2CPacket(PlayerListS2CPacket.Action.REMOVE_PLAYER, vanishingPlayer));
+                    playerEntity.networkHandler.sendPacket(new GameMessageS2CPacket(new TranslatableText("multiplayer.player.left", new LiteralText(vanishingPlayer.getEntityName())).formatted(Formatting.YELLOW), MessageType.CHAT, NIL_UUID));
+                    playerEntity.networkHandler.sendPacket(new EntitiesDestroyS2CPacket(vanishingPlayer.getEntityId()));
                 }
             });
 
             if (vanishStatusEntity != null) {
-                player.networkHandler.sendPacket(new PlayerListS2CPacket(PlayerListS2CPacket.Action.ADD_PLAYER, vanishStatusEntity));
+                vanishingPlayer.networkHandler.sendPacket(new PlayerListS2CPacket(PlayerListS2CPacket.Action.ADD_PLAYER, vanishStatusEntity));
             }
-            player.networkHandler.sendPacket(new GameMessageS2CPacket(new LiteralText("You are now Vanished").formatted(Formatting.GREEN), MessageType.CHAT, NIL_UUID));
+            vanishingPlayer.networkHandler.sendPacket(new GameMessageS2CPacket(new LiteralText("You are now Vanished").formatted(Formatting.GREEN), MessageType.CHAT, NIL_UUID));
         }
         return 1;
+    }
+
+    public static void sendFakePlayerListEntry(ServerPlayerEntity player){
+        if(Vanish.INSTANCE.getVanishedPlayers().stream().noneMatch(vanishedPlayer -> vanishedPlayer.getUuid().equals(player.getUuid()))) return;
+        if(vanishStatusEntity == null) return;
+        player.networkHandler.sendPacket(new PlayerListS2CPacket(PlayerListS2CPacket.Action.ADD_PLAYER, vanishStatusEntity));
     }
 }
