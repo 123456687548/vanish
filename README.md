@@ -1,9 +1,9 @@
 # Vanish
-Vanish is a simple mod for Fabric servers admins.
+Vanish is a simple mod for Fabric server admins.
 
 It's used to mask your online status, so no one knows that you are online.
 
-It stops the server from sending specific packets to other players that notify their client that you exist on this server.
+It stops the server from sending specific packets to other players that notify their client that you exist on the server.
 
 # Features:
 - Invisible (The game of the other players don't get any information of your presence)
@@ -22,3 +22,5 @@ It stops the server from sending specific packets to other players that notify t
 - [CurseForge](https://www.curseforge.com/minecraft/mc-mods/vanish)
 - [1.16.4](https://github.com/123456687548/vanish/releases/tag/1.16.4_1.2.1)
 - [20w49a](https://github.com/123456687548/vanish/releases/tag/20w49a_1.2.1)
+
+![icon_hd](https://user-images.githubusercontent.com/60381935/102011335-b729b880-3d43-11eb-8466-acfa07d608ec.png)
