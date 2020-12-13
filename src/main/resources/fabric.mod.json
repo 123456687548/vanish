@@ -11,7 +11,7 @@
   "environment": "server",
   "entrypoints": {
     "main": [
-      "eu.vanish.VanishInitalizer"
+      "eu.vanish.VanishInitializer"
     ]
   },
   "mixins": [

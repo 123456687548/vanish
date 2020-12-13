@@ -6,14 +6,14 @@ It's used to mask your online status, so no one knows that you are online.
 It stops the server from sending specific packets to other players that notify their client that you exist on this server.
 
 # Features:
-- Invisible (The game of the other players don't get any informations of your pressence)
+- Invisible (The game of the other players don't get any information of your presence)
 - No hacked Client can see you
 - In Server list fake amount of players online
 - Not showing up in the playerlist
-- You make no sound, exept while destroying blocks
+- You make no sound, except while destroying blocks
 - Fake join/leave message
-- Overwrites /list command so it doesn't show vanished players
-- Overwrites /msg command so you cannot be messaged by other players
+- Overwrites /list command, so it doesn't show vanished players
+- Overwrites /msg command, so you cannot be messaged by other players
 
 # Usage:
 /vanish
