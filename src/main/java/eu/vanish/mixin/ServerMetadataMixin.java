@@ -1,5 +1,6 @@
 package eu.vanish.mixin;
 
+import com.mojang.authlib.GameProfile;
 import eu.vanish.Vanish;
 import net.minecraft.server.ServerMetadata;
 import org.spongepowered.asm.mixin.Mixin;
@@ -8,7 +9,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 
 @Mixin(ServerMetadata.class)
@@ -20,20 +21,18 @@ public class ServerMetadataMixin {
     @Inject(at = @At("HEAD"), method = "getPlayers")
     private void onGetPlayers(CallbackInfoReturnable<ServerMetadata.Players> ci) {
         if (Vanish.INSTANCE.isActive()) {
-            int amountOfVanishedPlayers = Vanish.INSTANCE.getVanishedPlayersUUID().size();
-            int realAmountOfPlayers = Vanish.INSTANCE.getServer().getCurrentPlayerCount();
 
-            List<String> onlinePlayerNames = Arrays.asList(Vanish.INSTANCE.getServer().getPlayerManager().getPlayerNames());
+            List<GameProfile> gameProfiles = new ArrayList<>();
 
-            for (String name : Vanish.INSTANCE.getVanishedPlayerNames()) {
-                if (!onlinePlayerNames.contains(name)) {
-                    amountOfVanishedPlayers--;
+            Vanish.INSTANCE.getServer().getPlayerManager().getPlayerList().forEach(player -> {
+                GameProfile profile = player.getGameProfile();
+                if(Vanish.INSTANCE.getVanishedPlayers().stream().noneMatch(vanishedPlayer -> vanishedPlayer.getUuid().equals(player.getUuid()))){
+                    gameProfiles.add(profile);
                 }
-            }
+            });
 
-            int fakePlayerAmount = Math.max(realAmountOfPlayers - amountOfVanishedPlayers, 0);
-
-            players = new ServerMetadata.Players(players.getPlayerLimit(), fakePlayerAmount);
+            players = new ServerMetadata.Players(players.getPlayerLimit(), Vanish.INSTANCE.getFakePlayerCount());
+            players.setSample(gameProfiles.toArray(new GameProfile[0]));
         }
     }
 }

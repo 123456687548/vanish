@@ -4,10 +4,11 @@
   "package": "eu.vanish.mixin",
   "compatibilityLevel": "JAVA_8",
   "mixins": [
-    "ClientConnectionMixin",
     "GameMessageS2CPacketMixin",
     "PlayerListS2CPacketMixin",
+    "PlayerManagerMixin",
     "ServerMetadataMixin",
+    "ServerPlayNetworkHandlerMixin",
     "ServerWorldMixin"
   ],
   "client": [
