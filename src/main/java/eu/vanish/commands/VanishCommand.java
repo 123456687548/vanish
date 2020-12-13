@@ -49,7 +49,6 @@ public final class VanishCommand {
                     vanish.getServer()
                     , world
                     , new GameProfile(UUID.randomUUID(), " You're Vanished")
-                    , new ServerPlayerInteractionManager(world)
             );
         }
 
