@@ -21,6 +21,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import static net.minecraft.network.MessageType.CHAT;
+import static net.minecraft.network.MessageType.SYSTEM;
 
 @Mixin(ServerPlayNetworkHandler.class)
 public class ServerPlayNetworkHandlerMixin {
@@ -32,7 +33,7 @@ public class ServerPlayNetworkHandlerMixin {
         if (!Vanish.INSTANCE.isActive()) return;
 
         if (packet instanceof GameMessageS2CPacket) {
-            if (shouldStopLeaveJoinMessage(packet)) {
+            if (shouldStopLeaveJoinMessage(packet) || shouldStopAdvancementMessage(packet)) {
                 ci.cancel();
             }
         }
@@ -49,6 +50,25 @@ public class ServerPlayNetworkHandlerMixin {
             TranslatableText message = (TranslatableText) textMessage;
             String key = message.getKey();
             if (key.equals("multiplayer.player.joined") || key.equals("multiplayer.player.left")) {
+                String messageString = message.toString();
+                for (VanishedPlayer vanishedPlayer : Vanish.INSTANCE.getVanishedPlayers()) {
+                    if (messageString.contains(vanishedPlayer.getName())) {
+                        return true;
+                    }
+                }
+            }
+        }
+
+        return false;
+    }
+
+    private boolean shouldStopAdvancementMessage(Packet<?> packet) {
+        if (!((GameMessageS2CPacket) packet).getLocation().equals(SYSTEM)) return false;
+        Text textMessage = ((IGameMessageS2CPacket) packet).getMessageOnServer();
+        if (textMessage instanceof TranslatableText) {
+            TranslatableText message = (TranslatableText) textMessage;
+            String key = message.getKey();
+            if (key.contains("chat.type.advancement.")) {
                 String messageString = message.toString();
                 for (VanishedPlayer vanishedPlayer : Vanish.INSTANCE.getVanishedPlayers()) {
                     if (messageString.contains(vanishedPlayer.getName())) {
