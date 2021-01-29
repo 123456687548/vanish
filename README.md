@@ -14,6 +14,7 @@ It stops the server from sending specific packets to other players that notify t
 - Fake join/leave message
 - Overwrites /list command, so it doesn't show vanished players
 - Overwrites /msg command, so you cannot be messaged by other players
+- Settings file
 
 # Usage:
 /vanish

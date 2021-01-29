@@ -6,9 +6,9 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import com.mojang.datafixers.util.Pair;
 import eu.vanish.Vanish;
+import eu.vanish.data.Settings;
 import eu.vanish.data.VanishedPlayer;
 import net.minecraft.entity.EquipmentSlot;
-import net.minecraft.entity.LivingEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.MessageType;
 import net.minecraft.network.packet.s2c.play.*;
@@ -29,6 +29,7 @@ import static net.minecraft.util.Util.NIL_UUID;
 
 public final class VanishCommand {
     private static final Vanish vanish = Vanish.INSTANCE;
+    private static final Settings settings = vanish.getSettings();
 
     private static ServerWorld world = null;
 
@@ -47,7 +48,7 @@ public final class VanishCommand {
         if (world == null) {
             world = vanish.getServer().getWorlds().iterator().next();
         }
-        if (vanishStatusEntity == null && world != null) {
+        if (settings.showStatusInPlayerlist() && vanishStatusEntity == null && world != null) {
             vanishStatusEntity = new ServerPlayerEntity(
                     vanish.getServer()
                     , world
@@ -67,7 +68,10 @@ public final class VanishCommand {
             vanish.getServer().getPlayerManager().getPlayerList().forEach(playerEntity -> {
                 if (!playerEntity.equals(vanishingPlayer)) {
                     playerEntity.networkHandler.sendPacket(new PlayerListS2CPacket(PlayerListS2CPacket.Action.ADD_PLAYER, vanishingPlayer));
-                    playerEntity.networkHandler.sendPacket(new GameMessageS2CPacket(new TranslatableText("multiplayer.player.joined", new LiteralText(vanishingPlayer.getEntityName())).formatted(Formatting.YELLOW), MessageType.CHAT, NIL_UUID));
+
+                    if (settings.showFakeJoinMessage()) {
+                        playerEntity.networkHandler.sendPacket(new GameMessageS2CPacket(new TranslatableText("multiplayer.player.joined", new LiteralText(vanishingPlayer.getEntityName())).formatted(Formatting.YELLOW), MessageType.CHAT, NIL_UUID));
+                    }
                     playerEntity.networkHandler.sendPacket(new PlayerSpawnS2CPacket(vanishingPlayer));
                     updateEquipment(vanishingPlayer, playerEntity);
                 }
@@ -91,7 +95,9 @@ public final class VanishCommand {
             vanish.getServer().getPlayerManager().getPlayerList().forEach(playerEntity -> {
                 if (!playerEntity.equals(vanishingPlayer)) {
                     playerEntity.networkHandler.sendPacket(new PlayerListS2CPacket(PlayerListS2CPacket.Action.REMOVE_PLAYER, vanishingPlayer));
-                    playerEntity.networkHandler.sendPacket(new GameMessageS2CPacket(new TranslatableText("multiplayer.player.left", new LiteralText(vanishingPlayer.getEntityName())).formatted(Formatting.YELLOW), MessageType.CHAT, NIL_UUID));
+                    if (settings.showFakeLeaveMessage()) {
+                        playerEntity.networkHandler.sendPacket(new GameMessageS2CPacket(new TranslatableText("multiplayer.player.left", new LiteralText(vanishingPlayer.getEntityName())).formatted(Formatting.YELLOW), MessageType.CHAT, NIL_UUID));
+                    }
                     playerEntity.networkHandler.sendPacket(new EntitiesDestroyS2CPacket(vanishingPlayer.getEntityId()));
                 }
             });
@@ -104,13 +110,13 @@ public final class VanishCommand {
         return 1;
     }
 
-    public static void sendFakePlayerListEntry(ServerPlayerEntity player){
-        if(Vanish.INSTANCE.getVanishedPlayers().stream().noneMatch(vanishedPlayer -> vanishedPlayer.getUuid().equals(player.getUuid()))) return;
-        if(vanishStatusEntity == null) return;
+    public static void sendFakePlayerListEntry(ServerPlayerEntity player) {
+        if (Vanish.INSTANCE.getVanishedPlayers().stream().noneMatch(vanishedPlayer -> vanishedPlayer.getUuid().equals(player.getUuid()))) return;
+        if (vanishStatusEntity == null) return;
         player.networkHandler.sendPacket(new PlayerListS2CPacket(PlayerListS2CPacket.Action.ADD_PLAYER, vanishStatusEntity));
     }
 
-    private static void updateEquipment(ServerPlayerEntity vanishingPlayer, ServerPlayerEntity receiver){
+    private static void updateEquipment(ServerPlayerEntity vanishingPlayer, ServerPlayerEntity receiver) {
         List<Pair<EquipmentSlot, ItemStack>> equipmentList = Lists.newArrayList();
 
         for (EquipmentSlot equipmentSlot : EquipmentSlot.values()) {

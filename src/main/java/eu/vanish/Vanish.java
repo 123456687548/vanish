@@ -3,6 +3,7 @@ package eu.vanish;
 import eu.vanish.commands.OverwrittenListCommand;
 import eu.vanish.commands.OverwrittenMsgCommand;
 import eu.vanish.commands.VanishCommand;
+import eu.vanish.data.Settings;
 import eu.vanish.data.VanishedPlayer;
 import net.fabricmc.fabric.api.command.v1.CommandRegistrationCallback;
 import net.minecraft.server.MinecraftServer;
@@ -21,7 +22,10 @@ public enum Vanish {
 
     private int amountOfVanishedPlayersOnline = 0;
 
+    private Settings settings;
+
     public void init() {
+        settings = Settings.loadSettings();
         registerCommands();
     }
 
@@ -73,6 +77,10 @@ public enum Vanish {
     public void setServer(MinecraftServer server) {
         if (this.server != null) return;
         this.server = server;
+    }
+
+    public Settings getSettings() {
+        return settings;
     }
 
     public void setActive(boolean active) {
