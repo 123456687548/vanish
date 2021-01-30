@@ -32,8 +32,12 @@ public enum Vanish {
     private void registerCommands() {
         CommandRegistrationCallback.EVENT.register((dispatcher, dedicated) -> {
                     VanishCommand.register(dispatcher);
-                    OverwrittenListCommand.register(dispatcher);
-                    OverwrittenMsgCommand.register(dispatcher);
+                    if (settings.overwriteListCommand()) {
+                        OverwrittenListCommand.register(dispatcher);
+                    }
+                    if (settings.overwriteMsgCommand()) {
+                        OverwrittenMsgCommand.register(dispatcher);
+                    }
                 }
         );
     }

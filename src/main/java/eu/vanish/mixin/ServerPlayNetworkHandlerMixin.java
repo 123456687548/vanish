@@ -1,6 +1,7 @@
 package eu.vanish.mixin;
 
 import eu.vanish.Vanish;
+import eu.vanish.data.Settings;
 import eu.vanish.data.VanishedPlayer;
 import eu.vanish.mixinterface.IGameMessageS2CPacket;
 import eu.vanish.mixinterface.IPlayerListS2CPacket;
@@ -27,6 +28,8 @@ import static net.minecraft.network.MessageType.SYSTEM;
 
 @Mixin(ServerPlayNetworkHandler.class)
 public class ServerPlayNetworkHandlerMixin {
+    private Settings settings = Vanish.INSTANCE.getSettings();
+
     @Shadow
     public ServerPlayerEntity player;
 
@@ -49,6 +52,7 @@ public class ServerPlayNetworkHandlerMixin {
     }
 
     private boolean shouldStopCommandMessage(Packet<?> packet) {
+        if (!settings.removeCommandOPMessage()) return false;
         if (((GameMessageS2CPacket) packet).getLocation().equals(CHAT)) return false;
         Text textMessage = ((IGameMessageS2CPacket) packet).getMessageOnServer();
         if (textMessage instanceof TranslatableText) {
@@ -67,6 +71,7 @@ public class ServerPlayNetworkHandlerMixin {
     }
 
     private boolean shouldStopDeathMessage(Packet<?> packet) {
+        if(!settings.removeDeathMessage()) return false;
         if (((GameMessageS2CPacket) packet).getLocation().equals(CHAT)) return false;
         Text textMessage = ((IGameMessageS2CPacket) packet).getMessageOnServer();
         if (textMessage instanceof TranslatableText) {
@@ -91,7 +96,8 @@ public class ServerPlayNetworkHandlerMixin {
         if (textMessage instanceof TranslatableText) {
             TranslatableText message = (TranslatableText) textMessage;
             String key = message.getKey();
-            if (key.equals("multiplayer.player.joined") || key.equals("multiplayer.player.left")) {
+            if ((settings.removeJoinMessage() && key.equals("multiplayer.player.joined"))
+                    || (settings.removeLeaveMessage() && key.equals("multiplayer.player.left"))) {
                 String messageString = message.toString();
                 for (VanishedPlayer vanishedPlayer : Vanish.INSTANCE.getVanishedPlayers()) {
                     if (messageString.contains(vanishedPlayer.getName())) {
@@ -105,6 +111,7 @@ public class ServerPlayNetworkHandlerMixin {
     }
 
     private boolean shouldStopAdvancementMessage(Packet<?> packet) {
+        if(!settings.removeAdvancementMessage()) return false;
         if (!((GameMessageS2CPacket) packet).getLocation().equals(SYSTEM)) return false;
         Text textMessage = ((IGameMessageS2CPacket) packet).getMessageOnServer();
         if (textMessage instanceof TranslatableText) {
