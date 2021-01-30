@@ -23,6 +23,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import static net.minecraft.network.MessageType.CHAT;
 import static net.minecraft.network.MessageType.SYSTEM;
 
+//todo cleanup (code repetition)
+
 @Mixin(ServerPlayNetworkHandler.class)
 public class ServerPlayNetworkHandlerMixin {
     @Shadow
@@ -33,7 +35,10 @@ public class ServerPlayNetworkHandlerMixin {
         if (!Vanish.INSTANCE.isActive()) return;
 
         if (packet instanceof GameMessageS2CPacket) {
-            if (shouldStopLeaveJoinMessage(packet) || shouldStopAdvancementMessage(packet)) {
+            if (shouldStopLeaveJoinMessage(packet)
+                    || shouldStopAdvancementMessage(packet)
+                    || shouldStopDeathMessage(packet)
+                    || shouldStopCommandMessage(packet)) {
                 ci.cancel();
             }
         }
@@ -41,6 +46,43 @@ public class ServerPlayNetworkHandlerMixin {
         if (packet instanceof PlayerListS2CPacket) {
             removeVanishedPlayers(packet);
         }
+    }
+
+    private boolean shouldStopCommandMessage(Packet<?> packet) {
+        if (((GameMessageS2CPacket) packet).getLocation().equals(CHAT)) return false;
+        Text textMessage = ((IGameMessageS2CPacket) packet).getMessageOnServer();
+        if (textMessage instanceof TranslatableText) {
+            TranslatableText message = (TranslatableText) textMessage;
+            String key = message.getKey();
+            if (key.equals("chat.type.admin")) {
+                String messageString = message.toString();
+                for (VanishedPlayer vanishedPlayer : Vanish.INSTANCE.getVanishedPlayers()) {
+                    if (messageString.contains(vanishedPlayer.getName())) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    private boolean shouldStopDeathMessage(Packet<?> packet) {
+        if (((GameMessageS2CPacket) packet).getLocation().equals(CHAT)) return false;
+        Text textMessage = ((IGameMessageS2CPacket) packet).getMessageOnServer();
+        if (textMessage instanceof TranslatableText) {
+            TranslatableText message = (TranslatableText) textMessage;
+            String key = message.getKey();
+            if (key.contains("death")) {
+                String messageString = message.toString();
+                for (VanishedPlayer vanishedPlayer : Vanish.INSTANCE.getVanishedPlayers()) {
+                    if (messageString.contains(vanishedPlayer.getName())) {
+                        return true;
+                    }
+                }
+            }
+        }
+
+        return false;
     }
 
     private boolean shouldStopLeaveJoinMessage(Packet<?> packet) {
@@ -82,11 +124,12 @@ public class ServerPlayNetworkHandlerMixin {
     }
 
     private void removeVanishedPlayers(Packet<?> packet) {
-        if(Vanish.INSTANCE.getVanishedPlayers().stream().anyMatch(vanishedPlayer -> vanishedPlayer.getUuid().equals(player.getUuid()))) return;
+        if (Vanish.INSTANCE.getVanishedPlayers().stream().anyMatch(vanishedPlayer -> vanishedPlayer.getUuid().equals(player.getUuid()))) return;
         IPlayerListS2CPacket playerListS2CPacket = (IPlayerListS2CPacket) packet;
         PlayerListS2CPacket.Action action = playerListS2CPacket.getActionOnServer();
 
-        if (action.equals(PlayerListS2CPacket.Action.REMOVE_PLAYER) || action.equals(PlayerListS2CPacket.Action.UPDATE_LATENCY) || action.equals(PlayerListS2CPacket.Action.UPDATE_GAME_MODE)) return;
+        if (action.equals(PlayerListS2CPacket.Action.REMOVE_PLAYER) || action.equals(PlayerListS2CPacket.Action.UPDATE_LATENCY) || action.equals(PlayerListS2CPacket.Action.UPDATE_GAME_MODE))
+            return;
 
         playerListS2CPacket.getEntriesOnServer().removeIf(entry ->
                 Vanish.INSTANCE.getVanishedPlayers().stream().anyMatch(vanishedPlayer ->
