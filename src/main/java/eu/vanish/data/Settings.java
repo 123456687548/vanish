@@ -16,11 +16,9 @@ public final class Settings {
     private boolean showFakeLeaveMessage = true;
     private boolean showFakeJoinMessage = true;
     private boolean showStatusInPlayerlist = true;
+    private boolean removeChatMessage = true;
+    private boolean removeWisperMessage = true;
     private boolean removeCommandOPMessage = true;
-    private boolean removeDeathMessage = true;
-    private boolean removeJoinMessage = true;
-    private boolean removeLeaveMessage = true;
-    private boolean removeAdvancementMessage = true;
     private boolean overwriteMsgCommand = true;
     private boolean overwriteListCommand = true;
 
@@ -40,20 +38,16 @@ public final class Settings {
         return showStatusInPlayerlist;
     }
 
+    public boolean removeChatMessage() {
+        return removeChatMessage;
+    }
+
+    public boolean removeWisperMessage(){
+        return removeWisperMessage;
+    }
+
     public boolean removeCommandOPMessage() {
         return removeCommandOPMessage;
-    }
-
-    public boolean removeDeathMessage() {
-        return removeDeathMessage;
-    }
-
-    public boolean removeJoinMessage() {
-        return removeJoinMessage;
-    }
-
-    public boolean removeLeaveMessage() {
-        return removeLeaveMessage;
     }
 
     public boolean overwriteMsgCommand() {
@@ -62,10 +56,6 @@ public final class Settings {
 
     public boolean overwriteListCommand() {
         return overwriteListCommand;
-    }
-
-    public boolean removeAdvancementMessage() {
-        return removeAdvancementMessage;
     }
 
     public static Settings loadSettings() {

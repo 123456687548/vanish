@@ -58,6 +58,14 @@ public enum Vanish {
         }
     }
 
+    public boolean isVanished(ServerPlayerEntity player){
+        return isVanished(player.getEntityName());
+    }
+
+    public boolean isVanished(String name){
+        return Vanish.INSTANCE.getVanishedPlayers().stream().anyMatch(vanishedPlayer -> vanishedPlayer.getName().equals(name));
+    }
+
     public int getFakePlayerCount() {
         return Math.max(server.getCurrentPlayerCount() - amountOfVanishedPlayersOnline, 0); //wrong
     }

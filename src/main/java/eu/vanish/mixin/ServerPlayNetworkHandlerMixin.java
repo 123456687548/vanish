@@ -2,7 +2,7 @@ package eu.vanish.mixin;
 
 import eu.vanish.Vanish;
 import eu.vanish.data.Settings;
-import eu.vanish.data.VanishedPlayer;
+import eu.vanish.exeptions.NoTranslateableMessageExeption;
 import eu.vanish.mixinterface.IGameMessageS2CPacket;
 import eu.vanish.mixinterface.IPlayerListS2CPacket;
 import io.netty.util.concurrent.Future;
@@ -12,6 +12,7 @@ import net.minecraft.network.packet.s2c.play.GameMessageS2CPacket;
 import net.minecraft.network.packet.s2c.play.PlayerListS2CPacket;
 import net.minecraft.server.network.ServerPlayNetworkHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.text.LiteralText;
 import net.minecraft.text.Text;
 import net.minecraft.text.TranslatableText;
 import org.jetbrains.annotations.Nullable;
@@ -21,13 +22,10 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import static net.minecraft.network.MessageType.CHAT;
-import static net.minecraft.network.MessageType.SYSTEM;
-
-//todo cleanup (code repetition)
+import java.util.Arrays;
 
 @Mixin(ServerPlayNetworkHandler.class)
-public class ServerPlayNetworkHandlerMixin {
+public abstract class ServerPlayNetworkHandlerMixin {
     private Settings settings = Vanish.INSTANCE.getSettings();
 
     @Shadow
@@ -38,10 +36,9 @@ public class ServerPlayNetworkHandlerMixin {
         if (!Vanish.INSTANCE.isActive()) return;
 
         if (packet instanceof GameMessageS2CPacket) {
-            if (shouldStopLeaveJoinMessage(packet)
-                    || shouldStopAdvancementMessage(packet)
-                    || shouldStopDeathMessage(packet)
-                    || shouldStopCommandMessage(packet)) {
+            GameMessageS2CPacket gameMessagePacket = (GameMessageS2CPacket) packet;
+
+            if (shouldStopMessage(gameMessagePacket)) {
                 ci.cancel();
             }
         }
@@ -51,83 +48,26 @@ public class ServerPlayNetworkHandlerMixin {
         }
     }
 
-    private boolean shouldStopCommandMessage(Packet<?> packet) {
-        if (!settings.removeCommandOPMessage()) return false;
-        if (((GameMessageS2CPacket) packet).getLocation().equals(CHAT)) return false;
-        Text textMessage = ((IGameMessageS2CPacket) packet).getMessageOnServer();
-        if (textMessage instanceof TranslatableText) {
-            TranslatableText message = (TranslatableText) textMessage;
-            String key = message.getKey();
-            if (key.equals("chat.type.admin")) {
-                String messageString = message.toString();
-                for (VanishedPlayer vanishedPlayer : Vanish.INSTANCE.getVanishedPlayers()) {
-                    if (messageString.contains(vanishedPlayer.getName())) {
-                        return true;
-                    }
+    private boolean shouldStopMessage(GameMessageS2CPacket packet) {
+        try {
+            TranslatableText message = getTranslateableTextFromPacket(packet);
+
+            if (!settings.removeChatMessage() && message.getKey().contains("chat.type.text")) return false;
+            if (!settings.removeWisperMessage() && message.getKey().contains("commands.message.display.incoming")) return false;
+            if (!settings.removeCommandOPMessage() && message.getKey().contains("chat.type.admin")) return false;
+            if (settings.showFakeJoinMessage() && !packet.isNonChat() && message.getKey().contains("multiplayer.player.joined")) return false;
+            if (settings.showFakeLeaveMessage() && !packet.isNonChat() && message.getKey().contains("multiplayer.player.left")) return false;
+
+            return Arrays.stream(message.getArgs()).anyMatch(arg -> {
+                if (arg instanceof LiteralText) {
+                    String name = ((LiteralText) arg).getRawString();
+                    return !name.equals(player.getEntityName()) && Vanish.INSTANCE.isVanished(name);
                 }
-            }
+                return false;
+            });
+        } catch (NoTranslateableMessageExeption ignore) {
+            return false;
         }
-        return false;
-    }
-
-    private boolean shouldStopDeathMessage(Packet<?> packet) {
-        if(!settings.removeDeathMessage()) return false;
-        if (((GameMessageS2CPacket) packet).getLocation().equals(CHAT)) return false;
-        Text textMessage = ((IGameMessageS2CPacket) packet).getMessageOnServer();
-        if (textMessage instanceof TranslatableText) {
-            TranslatableText message = (TranslatableText) textMessage;
-            String key = message.getKey();
-            if (key.contains("death")) {
-                String messageString = message.toString();
-                for (VanishedPlayer vanishedPlayer : Vanish.INSTANCE.getVanishedPlayers()) {
-                    if (messageString.contains(vanishedPlayer.getName())) {
-                        return true;
-                    }
-                }
-            }
-        }
-
-        return false;
-    }
-
-    private boolean shouldStopLeaveJoinMessage(Packet<?> packet) {
-        if (((GameMessageS2CPacket) packet).getLocation().equals(CHAT)) return false;
-        Text textMessage = ((IGameMessageS2CPacket) packet).getMessageOnServer();
-        if (textMessage instanceof TranslatableText) {
-            TranslatableText message = (TranslatableText) textMessage;
-            String key = message.getKey();
-            if ((settings.removeJoinMessage() && key.equals("multiplayer.player.joined"))
-                    || (settings.removeLeaveMessage() && key.equals("multiplayer.player.left"))) {
-                String messageString = message.toString();
-                for (VanishedPlayer vanishedPlayer : Vanish.INSTANCE.getVanishedPlayers()) {
-                    if (messageString.contains(vanishedPlayer.getName())) {
-                        return true;
-                    }
-                }
-            }
-        }
-
-        return false;
-    }
-
-    private boolean shouldStopAdvancementMessage(Packet<?> packet) {
-        if(!settings.removeAdvancementMessage()) return false;
-        if (!((GameMessageS2CPacket) packet).getLocation().equals(SYSTEM)) return false;
-        Text textMessage = ((IGameMessageS2CPacket) packet).getMessageOnServer();
-        if (textMessage instanceof TranslatableText) {
-            TranslatableText message = (TranslatableText) textMessage;
-            String key = message.getKey();
-            if (key.contains("chat.type.advancement.")) {
-                String messageString = message.toString();
-                for (VanishedPlayer vanishedPlayer : Vanish.INSTANCE.getVanishedPlayers()) {
-                    if (messageString.contains(vanishedPlayer.getName())) {
-                        return true;
-                    }
-                }
-            }
-        }
-
-        return false;
     }
 
     private void removeVanishedPlayers(Packet<?> packet) {
@@ -143,6 +83,14 @@ public class ServerPlayNetworkHandlerMixin {
                         vanishedPlayer.getUuid().equals(entry.getProfile().getId())
                 )
         );
+    }
+
+    private TranslatableText getTranslateableTextFromPacket(GameMessageS2CPacket packet) throws NoTranslateableMessageExeption {
+        Text textMessage = ((IGameMessageS2CPacket) packet).getMessageOnServer();
+        if (textMessage instanceof TranslatableText) {
+            return (TranslatableText) textMessage;
+        }
+        throw new NoTranslateableMessageExeption();
     }
 
     @Inject(at = @At("HEAD"), method = "onDisconnected")
