@@ -3,13 +3,11 @@ package eu.vanish.mixin;
 import eu.vanish.Vanish;
 import eu.vanish.data.Settings;
 import eu.vanish.exeptions.NoTranslateableMessageExeption;
-import eu.vanish.mixinterface.IGameMessageS2CPacket;
-import eu.vanish.mixinterface.IPlayerListS2CPacket;
+import eu.vanish.mixinterface.*;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
 import net.minecraft.network.Packet;
-import net.minecraft.network.packet.s2c.play.GameMessageS2CPacket;
-import net.minecraft.network.packet.s2c.play.PlayerListS2CPacket;
+import net.minecraft.network.packet.s2c.play.*;
 import net.minecraft.server.network.ServerPlayNetworkHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.LiteralText;
@@ -41,6 +39,55 @@ public abstract class ServerPlayNetworkHandlerMixin {
             if (shouldStopMessage(gameMessagePacket)) {
                 ci.cancel();
             }
+        }
+
+        if (packet instanceof EntityS2CPacket) {
+            IEntityS2CPacket entityPacket = (IEntityS2CPacket) packet;
+            if (Vanish.INSTANCE.getVanishedPlayers().stream().anyMatch(vanishedPlayer ->
+                    vanishedPlayer.getEntityId() == entityPacket.getId()
+            )) {
+                ci.cancel();
+            }
+        }
+
+        if (packet instanceof EntityVelocityUpdateS2CPacket) {
+            IEntityVelocityUpdateS2CPacket entityPacket = (IEntityVelocityUpdateS2CPacket) packet;
+            if (Vanish.INSTANCE.getVanishedPlayers().stream().anyMatch(vanishedPlayer ->
+                    vanishedPlayer.getEntityId() == entityPacket.getIdOnServer()
+            )) {
+                ci.cancel();
+            }
+        }
+
+        if (packet instanceof EntitySetHeadYawS2CPacket) {
+            IEntitySetHeadYawS2CPacket entityPacket = (IEntitySetHeadYawS2CPacket) packet;
+            if (Vanish.INSTANCE.getVanishedPlayers().stream().anyMatch(vanishedPlayer ->
+                    vanishedPlayer.getEntityId() == entityPacket.getIdOnServer()
+            )) {
+                ci.cancel();
+            }
+        }
+
+//        EntitySetHeadYawS2CPacket
+//        EntityVelocityUpdateS2CPacket
+
+        if(packet instanceof EntityStatusS2CPacket){
+            IEntityStatusS2CPacket entityPacket = (IEntityStatusS2CPacket) packet;
+            if (Vanish.INSTANCE.getVanishedPlayers().stream().anyMatch(vanishedPlayer ->
+                    vanishedPlayer.getEntityId() == entityPacket.getIdOnServer()
+            )) {
+                System.out.println(entityPacket.getIdOnServer());
+                ci.cancel();
+            }
+        }
+
+        if(packet.getClass().getName().contains("Entity")
+                && !packet.getClass().getName().contains("Status")
+                && !packet.getClass().getName().contains("Head")
+                && !packet.getClass().getName().contains("Veloci")
+                && !packet.getClass().getName().contains("EntityS2CPacket")){
+            System.out.println(packet);
+            ci.cancel();
         }
 
         if (packet instanceof PlayerListS2CPacket) {

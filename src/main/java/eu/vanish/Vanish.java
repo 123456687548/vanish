@@ -6,10 +6,19 @@ import eu.vanish.commands.VanishCommand;
 import eu.vanish.data.Settings;
 import eu.vanish.data.VanishedPlayer;
 import net.fabricmc.fabric.api.command.v1.CommandRegistrationCallback;
+import net.minecraft.network.MessageType;
+import net.minecraft.network.packet.s2c.play.EntitiesDestroyS2CPacket;
+import net.minecraft.network.packet.s2c.play.GameMessageS2CPacket;
+import net.minecraft.network.packet.s2c.play.PlayerListS2CPacket;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.text.LiteralText;
+import net.minecraft.text.TranslatableText;
+import net.minecraft.util.Formatting;
 
 import java.util.HashSet;
+
+import static net.minecraft.util.Util.NIL_UUID;
 
 public enum Vanish {
     INSTANCE;
@@ -54,15 +63,27 @@ public enum Vanish {
         setServer(player.getServer());
 
         if (vanishedPlayers.stream().anyMatch(vanishedPlayer -> vanishedPlayer.getUuid().equals(player.getUuid()))) {
+            vanishedPlayers.forEach(vanishedPlayer -> {
+                if (vanishedPlayer.getUuid().equals(player.getUuid())) {
+                    vanishedPlayer.setEntityId(player.getEntityId());
+
+                    server.getPlayerManager().getPlayerList().forEach(playerEntity -> {
+                        if (!vanishedPlayer.getUuid().equals(playerEntity.getUuid())) {
+                            playerEntity.networkHandler.sendPacket(new EntitiesDestroyS2CPacket(vanishedPlayer.getEntityId()));
+                        }
+                    });
+                }
+            });
+
             increaseAmountOfOnlineVanishedPlayers();
         }
     }
 
-    public boolean isVanished(ServerPlayerEntity player){
+    public boolean isVanished(ServerPlayerEntity player) {
         return isVanished(player.getEntityName());
     }
 
-    public boolean isVanished(String name){
+    public boolean isVanished(String name) {
         return Vanish.INSTANCE.getVanishedPlayers().stream().anyMatch(vanishedPlayer -> vanishedPlayer.getName().equals(name));
     }
 

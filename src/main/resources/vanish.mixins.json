@@ -4,6 +4,10 @@
   "package": "eu.vanish.mixin",
   "compatibilityLevel": "JAVA_8",
   "mixins": [
+    "EntityS2CPacketMixin",
+    "EntitySetHeadYawS2CPacketMixin",
+    "EntityStatusS2CPacketMixin",
+    "EntityVelocityUpdateS2CPacketMixin",
     "GameMessageS2CPacketMixin",
     "PlayerListS2CPacketMixin",
     "PlayerManagerMixin",

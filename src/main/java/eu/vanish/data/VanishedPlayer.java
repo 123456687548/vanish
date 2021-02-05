@@ -7,10 +7,12 @@ import java.util.UUID;
 public final class VanishedPlayer {
     private final String name;
     private final UUID uuid;
+    private int entityId;
 
     public VanishedPlayer(ServerPlayerEntity player) {
         this.name = player.getEntityName();
         this.uuid = player.getUuid();
+        this.entityId = player.getEntityId();
     }
 
     public String getName() {
@@ -19,6 +21,14 @@ public final class VanishedPlayer {
 
     public UUID getUuid() {
         return uuid;
+    }
+
+    public int getEntityId() {
+        return entityId;
+    }
+
+    public void setEntityId(int entityId) {
+        this.entityId = entityId;
     }
 
     @Override
