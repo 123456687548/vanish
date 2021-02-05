@@ -1,5 +1,5 @@
 package eu.vanish.mixinterface;
 
-public interface IEntityVelocityUpdateS2CPacket {
+public interface EntityIDProvider {
     int getIdOnServer();
 }

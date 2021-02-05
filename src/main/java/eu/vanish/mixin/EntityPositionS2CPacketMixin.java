@@ -1,14 +1,14 @@
 package eu.vanish.mixin;
 
 import eu.vanish.mixinterface.EntityIDProvider;
-import net.minecraft.network.packet.s2c.play.EntityS2CPacket;
+import net.minecraft.network.packet.s2c.play.EntityPositionS2CPacket;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 
-@Mixin(EntityS2CPacket.class)
-public class EntityS2CPacketMixin implements EntityIDProvider {
+@Mixin(EntityPositionS2CPacket.class)
+public class EntityPositionS2CPacketMixin implements EntityIDProvider {
     @Shadow
-    protected int id;
+    private int id;
 
     @Override
     public int getIdOnServer() {

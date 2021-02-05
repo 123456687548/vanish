@@ -41,53 +41,20 @@ public abstract class ServerPlayNetworkHandlerMixin {
             }
         }
 
-        if (packet instanceof EntityS2CPacket) {
-            IEntityS2CPacket entityPacket = (IEntityS2CPacket) packet;
+        if (packet instanceof EntityS2CPacket
+                || packet instanceof EntityVelocityUpdateS2CPacket
+                || packet instanceof EntitySetHeadYawS2CPacket
+                || packet instanceof EntityStatusS2CPacket
+                || packet instanceof EntityPositionS2CPacket
+                || packet instanceof EntityAnimationS2CPacket
+                || packet instanceof EntityAttributesS2CPacket
+                || packet instanceof EntityTrackerUpdateS2CPacket
+                || packet instanceof EntityEquipmentUpdateS2CPacket) {
+            EntityIDProvider entityIDProvider = (EntityIDProvider) packet;
             if (Vanish.INSTANCE.getVanishedPlayers().stream().anyMatch(vanishedPlayer ->
-                    vanishedPlayer.getEntityId() == entityPacket.getId()
-            )) {
+                    vanishedPlayer.getEntityId() == entityIDProvider.getIdOnServer())) {
                 ci.cancel();
             }
-        }
-
-        if (packet instanceof EntityVelocityUpdateS2CPacket) {
-            IEntityVelocityUpdateS2CPacket entityPacket = (IEntityVelocityUpdateS2CPacket) packet;
-            if (Vanish.INSTANCE.getVanishedPlayers().stream().anyMatch(vanishedPlayer ->
-                    vanishedPlayer.getEntityId() == entityPacket.getIdOnServer()
-            )) {
-                ci.cancel();
-            }
-        }
-
-        if (packet instanceof EntitySetHeadYawS2CPacket) {
-            IEntitySetHeadYawS2CPacket entityPacket = (IEntitySetHeadYawS2CPacket) packet;
-            if (Vanish.INSTANCE.getVanishedPlayers().stream().anyMatch(vanishedPlayer ->
-                    vanishedPlayer.getEntityId() == entityPacket.getIdOnServer()
-            )) {
-                ci.cancel();
-            }
-        }
-
-//        EntitySetHeadYawS2CPacket
-//        EntityVelocityUpdateS2CPacket
-
-        if(packet instanceof EntityStatusS2CPacket){
-            IEntityStatusS2CPacket entityPacket = (IEntityStatusS2CPacket) packet;
-            if (Vanish.INSTANCE.getVanishedPlayers().stream().anyMatch(vanishedPlayer ->
-                    vanishedPlayer.getEntityId() == entityPacket.getIdOnServer()
-            )) {
-                System.out.println(entityPacket.getIdOnServer());
-                ci.cancel();
-            }
-        }
-
-        if(packet.getClass().getName().contains("Entity")
-                && !packet.getClass().getName().contains("Status")
-                && !packet.getClass().getName().contains("Head")
-                && !packet.getClass().getName().contains("Veloci")
-                && !packet.getClass().getName().contains("EntityS2CPacket")){
-            System.out.println(packet);
-            ci.cancel();
         }
 
         if (packet instanceof PlayerListS2CPacket) {
