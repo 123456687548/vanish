@@ -57,6 +57,15 @@ public abstract class ServerPlayNetworkHandlerMixin {
             }
         }
 
+        if(packet instanceof ItemPickupAnimationS2CPacket){
+            IItemPickupAnimationS2CPacket entityIDProvider = (IItemPickupAnimationS2CPacket) packet;
+            if (Vanish.INSTANCE.getVanishedPlayers().stream().anyMatch(vanishedPlayer ->
+                    vanishedPlayer.getEntityId() == entityIDProvider.getIdOnServer())) {
+                player.networkHandler.sendPacket(new EntitiesDestroyS2CPacket(entityIDProvider.getItemIdOnServer()));
+                ci.cancel();
+            }
+        }
+
         if (packet instanceof PlayerListS2CPacket) {
             removeVanishedPlayers(packet);
         }
