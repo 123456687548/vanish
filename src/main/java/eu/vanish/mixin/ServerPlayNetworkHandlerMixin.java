@@ -1,9 +1,13 @@
 package eu.vanish.mixin;
 
+import eu.vanish.NoTranslateableMessageException;
 import eu.vanish.Vanish;
+import eu.vanish.data.FakeTranslatableText;
 import eu.vanish.data.Settings;
-import eu.vanish.exeptions.NoTranslateableMessageExeption;
-import eu.vanish.mixinterface.*;
+import eu.vanish.mixinterface.EntityIDProvider;
+import eu.vanish.mixinterface.IGameMessageS2CPacket;
+import eu.vanish.mixinterface.IItemPickupAnimationS2CPacket;
+import eu.vanish.mixinterface.IPlayerListS2CPacket;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
 import net.minecraft.network.Packet;
@@ -57,7 +61,7 @@ public abstract class ServerPlayNetworkHandlerMixin {
             }
         }
 
-        if(packet instanceof ItemPickupAnimationS2CPacket){
+        if (packet instanceof ItemPickupAnimationS2CPacket) {
             IItemPickupAnimationS2CPacket entityIDProvider = (IItemPickupAnimationS2CPacket) packet;
             if (Vanish.INSTANCE.getVanishedPlayers().stream().anyMatch(vanishedPlayer ->
                     vanishedPlayer.getEntityId() == entityIDProvider.getIdOnServer())) {
@@ -76,10 +80,13 @@ public abstract class ServerPlayNetworkHandlerMixin {
             TranslatableText message = getTranslateableTextFromPacket(packet);
 
             if (!settings.removeChatMessage() && message.getKey().contains("chat.type.text")) return false;
-            if (!settings.removeWisperMessage() && message.getKey().contains("commands.message.display.incoming")) return false;
+            if (!settings.removeWisperMessage() && message.getKey().contains("commands.message.display.incoming"))
+                return false;
             if (!settings.removeCommandOPMessage() && message.getKey().contains("chat.type.admin")) return false;
-            if (settings.showFakeJoinMessage() && !packet.isNonChat() && message.getKey().contains("multiplayer.player.joined")) return false;
-            if (settings.showFakeLeaveMessage() && !packet.isNonChat() && message.getKey().contains("multiplayer.player.left")) return false;
+            if (settings.showFakeJoinMessage() && message instanceof FakeTranslatableText && message.getKey().contains("multiplayer.player.joined"))
+                return false;
+            if (settings.showFakeLeaveMessage() && message instanceof FakeTranslatableText && message.getKey().contains("multiplayer.player.left"))
+                return false;
 
             return Arrays.stream(message.getArgs()).anyMatch(arg -> {
                 if (arg instanceof LiteralText) {
@@ -88,13 +95,14 @@ public abstract class ServerPlayNetworkHandlerMixin {
                 }
                 return false;
             });
-        } catch (NoTranslateableMessageExeption ignore) {
+        } catch (NoTranslateableMessageException ignore) {
             return false;
         }
     }
 
     private void removeVanishedPlayers(Packet<?> packet) {
-        if (Vanish.INSTANCE.getVanishedPlayers().stream().anyMatch(vanishedPlayer -> vanishedPlayer.getUuid().equals(player.getUuid()))) return;
+        if (Vanish.INSTANCE.getVanishedPlayers().stream().anyMatch(vanishedPlayer -> vanishedPlayer.getUuid().equals(player.getUuid())))
+            return;
         IPlayerListS2CPacket playerListS2CPacket = (IPlayerListS2CPacket) packet;
         PlayerListS2CPacket.Action action = playerListS2CPacket.getActionOnServer();
 
@@ -108,12 +116,12 @@ public abstract class ServerPlayNetworkHandlerMixin {
         );
     }
 
-    private TranslatableText getTranslateableTextFromPacket(GameMessageS2CPacket packet) throws NoTranslateableMessageExeption {
+    private TranslatableText getTranslateableTextFromPacket(GameMessageS2CPacket packet) throws NoTranslateableMessageException {
         Text textMessage = ((IGameMessageS2CPacket) packet).getMessageOnServer();
         if (textMessage instanceof TranslatableText) {
             return (TranslatableText) textMessage;
         }
-        throw new NoTranslateableMessageExeption();
+        throw new NoTranslateableMessageException();
     }
 
     @Inject(at = @At("HEAD"), method = "onDisconnected")

@@ -6,6 +6,7 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import com.mojang.datafixers.util.Pair;
 import eu.vanish.Vanish;
+import eu.vanish.data.FakeTranslatableText;
 import eu.vanish.data.Settings;
 import eu.vanish.data.VanishedPlayer;
 import net.minecraft.entity.EquipmentSlot;
@@ -17,7 +18,6 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.network.ServerPlayerInteractionManager;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.LiteralText;
-import net.minecraft.text.TranslatableText;
 import net.minecraft.util.Formatting;
 
 import java.util.HashSet;
@@ -69,11 +69,11 @@ public final class VanishCommand {
                 if (!playerEntity.equals(vanishingPlayer)) {
                     playerEntity.networkHandler.sendPacket(new PlayerListS2CPacket(PlayerListS2CPacket.Action.ADD_PLAYER, vanishingPlayer));
 
-                    if (settings.showFakeJoinMessage()) {
-                        playerEntity.networkHandler.sendPacket(new GameMessageS2CPacket(new TranslatableText("multiplayer.player.joined", new LiteralText(vanishingPlayer.getEntityName())).formatted(Formatting.YELLOW), MessageType.CHAT, NIL_UUID));
-                    }
                     playerEntity.networkHandler.sendPacket(new PlayerSpawnS2CPacket(vanishingPlayer));
                     updateEquipment(vanishingPlayer, playerEntity);
+                    if (settings.showFakeJoinMessage()) {
+                        playerEntity.sendMessage(new FakeTranslatableText("multiplayer.player.joined", vanishingPlayer.getDisplayName()).formatted(Formatting.YELLOW), MessageType.SYSTEM, NIL_UUID);
+                    }
                 }
             });
 
@@ -95,9 +95,9 @@ public final class VanishCommand {
             vanish.getServer().getPlayerManager().getPlayerList().forEach(playerEntity -> {
                 if (!playerEntity.equals(vanishingPlayer)) {
                     playerEntity.networkHandler.sendPacket(new PlayerListS2CPacket(PlayerListS2CPacket.Action.REMOVE_PLAYER, vanishingPlayer));
-                    if (settings.showFakeLeaveMessage()) {
-                        playerEntity.networkHandler.sendPacket(new GameMessageS2CPacket(new TranslatableText("multiplayer.player.left", new LiteralText(vanishingPlayer.getEntityName())).formatted(Formatting.YELLOW), MessageType.CHAT, NIL_UUID));
-                    }
+                    //if (settings.showFakeLeaveMessage()) {
+                    playerEntity.sendMessage(new FakeTranslatableText("multiplayer.player.left", vanishingPlayer.getDisplayName()).formatted(Formatting.YELLOW), MessageType.SYSTEM, NIL_UUID);
+                    //}
                     playerEntity.networkHandler.sendPacket(new EntitiesDestroyS2CPacket(vanishingPlayer.getEntityId()));
                 }
             });
@@ -111,7 +111,8 @@ public final class VanishCommand {
     }
 
     public static void sendFakePlayerListEntry(ServerPlayerEntity player) {
-        if (Vanish.INSTANCE.getVanishedPlayers().stream().noneMatch(vanishedPlayer -> vanishedPlayer.getUuid().equals(player.getUuid()))) return;
+        if (Vanish.INSTANCE.getVanishedPlayers().stream().noneMatch(vanishedPlayer -> vanishedPlayer.getUuid().equals(player.getUuid())))
+            return;
         if (vanishStatusEntity == null) return;
         player.networkHandler.sendPacket(new PlayerListS2CPacket(PlayerListS2CPacket.Action.ADD_PLAYER, vanishStatusEntity));
     }
