@@ -1,9 +1,13 @@
 package eu.vanish.mixin;
 
 import eu.vanish.Vanish;
+import eu.vanish.data.FakeTranslatableText;
 import eu.vanish.data.Settings;
 import eu.vanish.exeptions.NoTranslateableMessageException;
-import eu.vanish.mixinterface.*;
+import eu.vanish.mixinterface.EntityIDProvider;
+import eu.vanish.mixinterface.IGameMessageS2CPacket;
+import eu.vanish.mixinterface.IItemPickupAnimationS2CPacket;
+import eu.vanish.mixinterface.IPlayerListS2CPacket;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
 import net.minecraft.network.Packet;
@@ -55,7 +59,7 @@ public abstract class ServerPlayNetworkHandlerMixin {
             }
         }
 
-        if(packet instanceof ItemPickupAnimationS2CPacket){
+        if (packet instanceof ItemPickupAnimationS2CPacket) {
             IItemPickupAnimationS2CPacket entityIDProvider = (IItemPickupAnimationS2CPacket) packet;
             if (Vanish.INSTANCE.getVanishedPlayers().stream().anyMatch(vanishedPlayer ->
                     vanishedPlayer.getEntityId() == entityIDProvider.getIdOnServer())) {
@@ -78,6 +82,10 @@ public abstract class ServerPlayNetworkHandlerMixin {
             if (!settings.removeCommandOPMessage() && message.getKey().contains("chat.type.admin")) return false;
             if (settings.showFakeJoinMessage() && message.getKey().contains("multiplayer.player.joined")) return false;
             if (settings.showFakeLeaveMessage() && message.getKey().contains("multiplayer.player.left")) return false;
+            if (settings.showFakeJoinMessage() && message instanceof FakeTranslatableText && message.getKey().contains("multiplayer.player.joined"))
+                return false;
+            if (settings.showFakeLeaveMessage() && message instanceof FakeTranslatableText && message.getKey().contains("multiplayer.player.left"))
+                return false;
 
             return Arrays.stream(message.getArgs()).anyMatch(arg -> {
                 if (arg instanceof LiteralText) {
