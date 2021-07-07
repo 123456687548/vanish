@@ -2,6 +2,7 @@ package eu.vanish.mixin;
 
 import com.mojang.authlib.GameProfile;
 import eu.vanish.Vanish;
+import eu.vanish.data.Settings;
 import net.minecraft.server.ServerMetadata;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -20,8 +21,7 @@ public class ServerMetadataMixin {
 
     @Inject(at = @At("HEAD"), method = "getPlayers")
     private void onGetPlayers(CallbackInfoReturnable<ServerMetadata.Players> ci) {
-        if (Vanish.INSTANCE.isActive()) {
-
+        if (Vanish.INSTANCE.isActive() && Vanish.INSTANCE.getSettings().fakePlayerCount()) {
             List<GameProfile> gameProfiles = new ArrayList<>();
 
             Vanish.INSTANCE.getServer().getPlayerManager().getPlayerList().forEach(player -> {
