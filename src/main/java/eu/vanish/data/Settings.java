@@ -21,6 +21,7 @@ public final class Settings {
     private boolean removeCommandOPMessage = true;
     private boolean overwriteMsgCommand = true;
     private boolean overwriteListCommand = true;
+    private boolean fakePlayerCount = true;
 
     private Settings() {
 
@@ -56,6 +57,10 @@ public final class Settings {
 
     public boolean overwriteListCommand() {
         return overwriteListCommand;
+    }
+
+    public boolean fakePlayerCount() {
+        return fakePlayerCount;
     }
 
     public static Settings loadSettings() {
