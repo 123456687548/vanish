@@ -63,7 +63,7 @@ public abstract class ServerPlayNetworkHandlerMixin {
             IItemPickupAnimationS2CPacket entityIDProvider = (IItemPickupAnimationS2CPacket) packet;
             if (Vanish.INSTANCE.getVanishedPlayers().stream().anyMatch(vanishedPlayer ->
                     vanishedPlayer.getEntityId() == entityIDProvider.getIdOnServer())) {
-                player.networkHandler.sendPacket(new EntityDestroyS2CPacket(entityIDProvider.getItemIdOnServer()));
+                player.networkHandler.sendPacket(new EntitiesDestroyS2CPacket(entityIDProvider.getItemIdOnServer()));
                 ci.cancel();
             }
         }

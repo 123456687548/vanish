@@ -96,7 +96,7 @@ public final class VanishCommand {
                     if (settings.showFakeLeaveMessage()) {
                     playerEntity.sendMessage(new FakeTranslatableText("multiplayer.player.left", vanishingPlayer.getDisplayName()).formatted(Formatting.YELLOW), MessageType.SYSTEM, NIL_UUID);
                     }
-                    playerEntity.networkHandler.sendPacket(new EntityDestroyS2CPacket(vanishingPlayer.getId()));
+                    playerEntity.networkHandler.sendPacket(new EntitiesDestroyS2CPacket(vanishingPlayer.getId()));
                 }
             });
 
