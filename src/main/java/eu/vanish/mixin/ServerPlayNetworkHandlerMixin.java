@@ -2,7 +2,7 @@ package eu.vanish.mixin;
 
 import eu.vanish.Vanish;
 import eu.vanish.data.Settings;
-import eu.vanish.exeptions.NoTranslateableMessageExeption;
+import eu.vanish.exeptions.NoTranslateableMessageException;
 import eu.vanish.mixinterface.*;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
@@ -24,7 +24,7 @@ import java.util.Arrays;
 
 @Mixin(ServerPlayNetworkHandler.class)
 public abstract class ServerPlayNetworkHandlerMixin {
-    private Settings settings = Vanish.INSTANCE.getSettings();
+    private final Settings settings = Vanish.INSTANCE.getSettings();
 
     @Shadow
     public ServerPlayerEntity player;
@@ -33,9 +33,7 @@ public abstract class ServerPlayNetworkHandlerMixin {
     private void onSendPacket(Packet<?> packet, @Nullable GenericFutureListener<? extends Future<? super Void>> callback, CallbackInfo ci) {
         if (!Vanish.INSTANCE.isActive()) return;
 
-        if (packet instanceof GameMessageS2CPacket) {
-            GameMessageS2CPacket gameMessagePacket = (GameMessageS2CPacket) packet;
-
+        if (packet instanceof GameMessageS2CPacket gameMessagePacket) {
             if (shouldStopMessage(gameMessagePacket)) {
                 ci.cancel();
             }
@@ -61,7 +59,7 @@ public abstract class ServerPlayNetworkHandlerMixin {
             IItemPickupAnimationS2CPacket entityIDProvider = (IItemPickupAnimationS2CPacket) packet;
             if (Vanish.INSTANCE.getVanishedPlayers().stream().anyMatch(vanishedPlayer ->
                     vanishedPlayer.getEntityId() == entityIDProvider.getIdOnServer())) {
-                player.networkHandler.sendPacket(new EntitiesDestroyS2CPacket(entityIDProvider.getItemIdOnServer()));
+                player.networkHandler.sendPacket(new EntityDestroyS2CPacket(entityIDProvider.getItemIdOnServer()));
                 ci.cancel();
             }
         }
@@ -78,8 +76,8 @@ public abstract class ServerPlayNetworkHandlerMixin {
             if (!settings.removeChatMessage() && message.getKey().contains("chat.type.text")) return false;
             if (!settings.removeWisperMessage() && message.getKey().contains("commands.message.display.incoming")) return false;
             if (!settings.removeCommandOPMessage() && message.getKey().contains("chat.type.admin")) return false;
-            if (settings.showFakeJoinMessage() && !packet.isNonChat() && message.getKey().contains("multiplayer.player.joined")) return false;
-            if (settings.showFakeLeaveMessage() && !packet.isNonChat() && message.getKey().contains("multiplayer.player.left")) return false;
+            if (settings.showFakeJoinMessage() && message.getKey().contains("multiplayer.player.joined")) return false;
+            if (settings.showFakeLeaveMessage() && message.getKey().contains("multiplayer.player.left")) return false;
 
             return Arrays.stream(message.getArgs()).anyMatch(arg -> {
                 if (arg instanceof LiteralText) {
@@ -88,7 +86,7 @@ public abstract class ServerPlayNetworkHandlerMixin {
                 }
                 return false;
             });
-        } catch (NoTranslateableMessageExeption ignore) {
+        } catch (NoTranslateableMessageException ignore) {
             return false;
         }
     }
@@ -108,12 +106,12 @@ public abstract class ServerPlayNetworkHandlerMixin {
         );
     }
 
-    private TranslatableText getTranslateableTextFromPacket(GameMessageS2CPacket packet) throws NoTranslateableMessageExeption {
+    private TranslatableText getTranslateableTextFromPacket(GameMessageS2CPacket packet) throws NoTranslateableMessageException {
         Text textMessage = ((IGameMessageS2CPacket) packet).getMessageOnServer();
         if (textMessage instanceof TranslatableText) {
             return (TranslatableText) textMessage;
         }
-        throw new NoTranslateableMessageExeption();
+        throw new NoTranslateableMessageException();
     }
 
     @Inject(at = @At("HEAD"), method = "onDisconnected")

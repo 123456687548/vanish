@@ -12,7 +12,7 @@ public final class VanishedPlayer {
     public VanishedPlayer(ServerPlayerEntity player) {
         this.name = player.getEntityName();
         this.uuid = player.getUuid();
-        this.entityId = player.getEntityId();
+        this.entityId = player.getId();
     }
 
     public String getName() {

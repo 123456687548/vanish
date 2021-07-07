@@ -33,8 +33,7 @@ public final class OverwrittenMsgCommand {
         UUID uUID = source.getEntity() == null ? Util.NIL_UUID : source.getEntity().getUuid();
         Entity entity = source.getEntity();
         Consumer<Text> consumer2;
-        if (entity instanceof ServerPlayerEntity) {
-            ServerPlayerEntity serverPlayerEntity = (ServerPlayerEntity) entity;
+        if (entity instanceof ServerPlayerEntity serverPlayerEntity) {
             consumer2 = (text2) -> {
                 serverPlayerEntity.sendSystemMessage((new TranslatableText("commands.message.display.outgoing", text2, message)).formatted(Formatting.GRAY, Formatting.ITALIC), serverPlayerEntity.getUuid());
             };

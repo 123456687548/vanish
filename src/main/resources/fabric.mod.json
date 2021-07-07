@@ -1,25 +1,30 @@
 {
-  "schemaVersion": 1,
-  "id": "vanish",
-  "version": "${version}",
-  "name": "Vanish",
-  "description": "",
-  "authors": [],
-  "contact": {},
-  "license": "MIT",
-  "icon": "icon.png",
-  "environment": "server",
-  "entrypoints": {
-    "main": [
-      "eu.vanish.VanishInitializer"
-    ]
-  },
-  "mixins": [
-    "vanish.mixins.json"
-  ],
-  "depends": {
-    "fabricloader": ">=0.10.8",
-    "fabric": "*",
-    "minecraft": ">=1.16.4"
-  }
+    "schemaVersion": 1,
+    "id": "vanish",
+    "version": "${version}",
+    "name": "vanish",
+    "description": "",
+    "authors": [
+        "123456687548"
+    ],
+    "contact": {
+        "homepage": "https://www.curseforge.com/minecraft/mc-mods/vanish",
+        "sources": "https://github.com/123456687548/vanish"
+    },
+    "license": "GNU GENERAL PUBLIC LICENSE",
+    "environment": "server",
+    "entrypoints": {
+        "main": [
+            "eu.vanish.VanishInitializer"
+        ]
+    },
+    "mixins": [
+        "vanish.mixins.json"
+    ],
+    "depends": {
+        "fabricloader": ">=0.11.3",
+        "fabric": "*",
+        "minecraft": "1.17.x",
+        "java": ">=16"
+    }
 }

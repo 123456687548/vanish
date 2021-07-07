@@ -14,7 +14,6 @@ import net.minecraft.network.MessageType;
 import net.minecraft.network.packet.s2c.play.*;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.network.ServerPlayerInteractionManager;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.LiteralText;
 import net.minecraft.text.TranslatableText;
@@ -53,7 +52,6 @@ public final class VanishCommand {
                     vanish.getServer()
                     , world
                     , new GameProfile(UUID.randomUUID(), " You're Vanished")
-                    , new ServerPlayerInteractionManager(world)
             );
         }
 
@@ -98,7 +96,7 @@ public final class VanishCommand {
                     if (settings.showFakeLeaveMessage()) {
                         playerEntity.networkHandler.sendPacket(new GameMessageS2CPacket(new TranslatableText("multiplayer.player.left", new LiteralText(vanishingPlayer.getEntityName())).formatted(Formatting.YELLOW), MessageType.CHAT, NIL_UUID));
                     }
-                    playerEntity.networkHandler.sendPacket(new EntitiesDestroyS2CPacket(vanishingPlayer.getEntityId()));
+                    playerEntity.networkHandler.sendPacket(new EntityDestroyS2CPacket(vanishingPlayer.getId()));
                 }
             });
 
@@ -127,7 +125,7 @@ public final class VanishCommand {
         }
 
         if (!equipmentList.isEmpty()) {
-            receiver.networkHandler.sendPacket(new EntityEquipmentUpdateS2CPacket(vanishingPlayer.getEntityId(), equipmentList));
+            receiver.networkHandler.sendPacket(new EntityEquipmentUpdateS2CPacket(vanishingPlayer.getId(), equipmentList));
         }
     }
 }

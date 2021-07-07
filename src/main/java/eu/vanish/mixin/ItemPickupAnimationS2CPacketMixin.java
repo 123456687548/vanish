@@ -1,6 +1,5 @@
 package eu.vanish.mixin;
 
-import eu.vanish.mixinterface.EntityIDProvider;
 import eu.vanish.mixinterface.IItemPickupAnimationS2CPacket;
 import net.minecraft.network.packet.s2c.play.ItemPickupAnimationS2CPacket;
 import org.spongepowered.asm.mixin.Mixin;

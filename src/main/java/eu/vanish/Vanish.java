@@ -6,19 +6,11 @@ import eu.vanish.commands.VanishCommand;
 import eu.vanish.data.Settings;
 import eu.vanish.data.VanishedPlayer;
 import net.fabricmc.fabric.api.command.v1.CommandRegistrationCallback;
-import net.minecraft.network.MessageType;
-import net.minecraft.network.packet.s2c.play.EntitiesDestroyS2CPacket;
-import net.minecraft.network.packet.s2c.play.GameMessageS2CPacket;
-import net.minecraft.network.packet.s2c.play.PlayerListS2CPacket;
+import net.minecraft.network.packet.s2c.play.EntityDestroyS2CPacket;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.LiteralText;
-import net.minecraft.text.TranslatableText;
-import net.minecraft.util.Formatting;
 
 import java.util.HashSet;
-
-import static net.minecraft.util.Util.NIL_UUID;
 
 public enum Vanish {
     INSTANCE;
@@ -65,11 +57,11 @@ public enum Vanish {
         if (vanishedPlayers.stream().anyMatch(vanishedPlayer -> vanishedPlayer.getUuid().equals(player.getUuid()))) {
             vanishedPlayers.forEach(vanishedPlayer -> {
                 if (vanishedPlayer.getUuid().equals(player.getUuid())) {
-                    vanishedPlayer.setEntityId(player.getEntityId());
+                    vanishedPlayer.setEntityId(player.getId());
 
                     server.getPlayerManager().getPlayerList().forEach(playerEntity -> {
                         if (!vanishedPlayer.getUuid().equals(playerEntity.getUuid())) {
-                            playerEntity.networkHandler.sendPacket(new EntitiesDestroyS2CPacket(vanishedPlayer.getEntityId()));
+                            playerEntity.networkHandler.sendPacket(new EntityDestroyS2CPacket(vanishedPlayer.getEntityId()));
                         }
                     });
                 }
