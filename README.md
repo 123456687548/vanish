@@ -21,5 +21,7 @@ It stops the server from sending specific packets to other players that notify t
 
 # Download
 - [CurseForge](https://www.curseforge.com/minecraft/mc-mods/vanish)
+- [1.17.1](https://github.com/123456687548/vanish/releases/tag/1.17.1_1.2.5)
+- [1.17](https://github.com/123456687548/vanish/releases/tag/1.17_1.2.5)
 - [1.16.4+](https://github.com/123456687548/vanish/releases/tag/1.16.4+_1.2.4)
 - [20w49a](https://github.com/123456687548/vanish/releases/tag/20w49a_1.2.2)
