@@ -80,8 +80,6 @@ public abstract class ServerPlayNetworkHandlerMixin {
             if (!settings.removeChatMessage() && message.getKey().contains("chat.type.text")) return false;
             if (!settings.removeWisperMessage() && message.getKey().contains("commands.message.display.incoming")) return false;
             if (!settings.removeCommandOPMessage() && message.getKey().contains("chat.type.admin")) return false;
-            if (settings.showFakeJoinMessage() && message.getKey().contains("multiplayer.player.joined")) return false;
-            if (settings.showFakeLeaveMessage() && message.getKey().contains("multiplayer.player.left")) return false;
             if (settings.showFakeJoinMessage() && message instanceof FakeTranslatableText && message.getKey().contains("multiplayer.player.joined"))
                 return false;
             if (settings.showFakeLeaveMessage() && message instanceof FakeTranslatableText && message.getKey().contains("multiplayer.player.left"))
