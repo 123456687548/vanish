@@ -58,13 +58,13 @@ public enum Vanish {
             vanishedPlayers.forEach(vanishedPlayer -> {
                 if (vanishedPlayer.getUuid().equals(player.getUuid())) {
                     vanishedPlayer.setEntityId(player.getId());
-
-                    server.getPlayerManager().getPlayerList().forEach(playerEntity -> {
-                        if (!vanishedPlayer.getUuid().equals(playerEntity.getUuid())) {
-                            playerEntity.networkHandler.sendPacket(new EntitiesDestroyS2CPacket(vanishedPlayer.getEntityId()));
-                        }
-                    });
                 }
+
+                server.getPlayerManager().getPlayerList().forEach(playerEntity -> {
+                    if (!vanishedPlayer.getUuid().equals(playerEntity.getUuid())) {
+                        playerEntity.networkHandler.sendPacket(new EntitiesDestroyS2CPacket(vanishedPlayer.getEntityId()));
+                    }
+                });
             });
 
             increaseAmountOfOnlineVanishedPlayers();
@@ -100,7 +100,9 @@ public enum Vanish {
     }
 
     public void setServer(MinecraftServer server) {
-        if (this.server != null) return;
+        if (this.server != null) {
+            return;
+        }
         this.server = server;
     }
 

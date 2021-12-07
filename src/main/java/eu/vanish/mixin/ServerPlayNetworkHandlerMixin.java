@@ -98,7 +98,6 @@ public abstract class ServerPlayNetworkHandlerMixin {
     }
 
     private void removeVanishedPlayers(Packet<?> packet) {
-        if (Vanish.INSTANCE.getVanishedPlayers().stream().anyMatch(vanishedPlayer -> vanishedPlayer.getUuid().equals(player.getUuid()))) return;
         IPlayerListS2CPacket playerListS2CPacket = (IPlayerListS2CPacket) packet;
         PlayerListS2CPacket.Action action = playerListS2CPacket.getActionOnServer();
 
@@ -107,7 +106,7 @@ public abstract class ServerPlayNetworkHandlerMixin {
 
         playerListS2CPacket.getEntriesOnServer().removeIf(entry ->
                 Vanish.INSTANCE.getVanishedPlayers().stream().anyMatch(vanishedPlayer ->
-                        vanishedPlayer.getUuid().equals(entry.getProfile().getId())
+                        vanishedPlayer.getUuid().equals(entry.getProfile().getId()) && !vanishedPlayer.getUuid().equals(player.getUuid())
                 )
         );
     }
