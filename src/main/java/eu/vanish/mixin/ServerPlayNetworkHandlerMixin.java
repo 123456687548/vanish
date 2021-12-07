@@ -17,6 +17,7 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.LiteralText;
 import net.minecraft.text.Text;
 import net.minecraft.text.TranslatableText;
+
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -24,6 +25,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+import java.awt.*;
 import java.util.Arrays;
 
 @Mixin(ServerPlayNetworkHandler.class)
@@ -35,7 +37,9 @@ public abstract class ServerPlayNetworkHandlerMixin {
 
     @Inject(at = @At("HEAD"), cancellable = true, method = "sendPacket(Lnet/minecraft/network/Packet;Lio/netty/util/concurrent/GenericFutureListener;)V")
     private void onSendPacket(Packet<?> packet, @Nullable GenericFutureListener<? extends Future<? super Void>> callback, CallbackInfo ci) {
-        if (!Vanish.INSTANCE.isActive()) return;
+        if (!Vanish.INSTANCE.isActive()) {
+            return;
+        }
 
         if (packet instanceof GameMessageS2CPacket gameMessagePacket) {
             if (shouldStopMessage(gameMessagePacket)) {
@@ -44,17 +48,17 @@ public abstract class ServerPlayNetworkHandlerMixin {
         }
 
         if (packet instanceof EntityS2CPacket
-                || packet instanceof EntityVelocityUpdateS2CPacket
-                || packet instanceof EntitySetHeadYawS2CPacket
-                || packet instanceof EntityStatusS2CPacket
-                || packet instanceof EntityPositionS2CPacket
-                || packet instanceof EntityAnimationS2CPacket
-                || packet instanceof EntityAttributesS2CPacket
-                || packet instanceof EntityTrackerUpdateS2CPacket
-                || packet instanceof EntityEquipmentUpdateS2CPacket) {
+            || packet instanceof EntityVelocityUpdateS2CPacket
+            || packet instanceof EntitySetHeadYawS2CPacket
+            || packet instanceof EntityStatusS2CPacket
+            || packet instanceof EntityPositionS2CPacket
+            || packet instanceof EntityAnimationS2CPacket
+            || packet instanceof EntityAttributesS2CPacket
+            || packet instanceof EntityTrackerUpdateS2CPacket
+            || packet instanceof EntityEquipmentUpdateS2CPacket) {
             EntityIDProvider entityIDProvider = (EntityIDProvider) packet;
             if (Vanish.INSTANCE.getVanishedPlayers().stream().anyMatch(vanishedPlayer ->
-                    vanishedPlayer.getEntityId() == entityIDProvider.getIdOnServer())) {
+                vanishedPlayer.getEntityId() == entityIDProvider.getIdOnServer())) {
                 if (player.getId() != entityIDProvider.getIdOnServer()) {
                     ci.cancel();
                 }
@@ -64,7 +68,7 @@ public abstract class ServerPlayNetworkHandlerMixin {
         if (packet instanceof ItemPickupAnimationS2CPacket) {
             IItemPickupAnimationS2CPacket entityIDProvider = (IItemPickupAnimationS2CPacket) packet;
             if (Vanish.INSTANCE.getVanishedPlayers().stream().anyMatch(vanishedPlayer ->
-                    vanishedPlayer.getEntityId() == entityIDProvider.getIdOnServer())) {
+                vanishedPlayer.getEntityId() == entityIDProvider.getIdOnServer())) {
                 player.networkHandler.sendPacket(new EntitiesDestroyS2CPacket(entityIDProvider.getItemIdOnServer()));
                 ci.cancel();
             }
@@ -79,18 +83,32 @@ public abstract class ServerPlayNetworkHandlerMixin {
         try {
             TranslatableText message = getTranslateableTextFromPacket(packet);
 
-            if (!settings.removeChatMessage() && message.getKey().contains("chat.type.text")) return false;
-            if (!settings.removeWisperMessage() && message.getKey().contains("commands.message.display.incoming")) return false;
-            if (!settings.removeCommandOPMessage() && message.getKey().contains("chat.type.admin")) return false;
-            if (settings.showFakeJoinMessage() && message instanceof FakeTranslatableText && message.getKey().contains("multiplayer.player.joined"))
+            if (!settings.removeChatMessage() && message.getKey().contains("chat.type.text")) {
                 return false;
-            if (settings.showFakeLeaveMessage() && message instanceof FakeTranslatableText && message.getKey().contains("multiplayer.player.left"))
+            }
+            if (!settings.removeWisperMessage() && message.getKey().contains("commands.message.display.incoming")) {
                 return false;
+            }
+            if (!settings.removeCommandOPMessage() && message.getKey().contains("chat.type.admin")) {
+                return false;
+            }
+            if (settings.showFakeJoinMessage() && message instanceof FakeTranslatableText && message.getKey().contains("multiplayer.player.joined")) {
+                return false;
+            }
+            if (settings.showFakeLeaveMessage() && message instanceof FakeTranslatableText && message.getKey().contains("multiplayer.player.left")) {
+                return false;
+            }
 
             return Arrays.stream(message.getArgs()).anyMatch(arg -> {
                 if (arg instanceof LiteralText) {
                     String name = ((LiteralText) arg).getRawString();
-                    return !name.equals(player.getEntityName()) && Vanish.INSTANCE.isVanished(name);
+                    if (!name.equals(player.getEntityName()) && Vanish.INSTANCE.isVanished(name)) {
+                        return true;
+                    }
+                    return ((LiteralText) arg).getSiblings().stream().anyMatch(sibling -> {
+                        String name2 = sibling.getString();
+                        return !name2.equals(player.getEntityName()) && Vanish.INSTANCE.isVanished(name2);
+                    });
                 }
                 return false;
             });
@@ -103,13 +121,14 @@ public abstract class ServerPlayNetworkHandlerMixin {
         IPlayerListS2CPacket playerListS2CPacket = (IPlayerListS2CPacket) packet;
         PlayerListS2CPacket.Action action = playerListS2CPacket.getActionOnServer();
 
-        if (action.equals(PlayerListS2CPacket.Action.REMOVE_PLAYER) || action.equals(PlayerListS2CPacket.Action.UPDATE_LATENCY) || action.equals(PlayerListS2CPacket.Action.UPDATE_GAME_MODE))
+        if (action.equals(PlayerListS2CPacket.Action.REMOVE_PLAYER) || action.equals(PlayerListS2CPacket.Action.UPDATE_LATENCY) || action.equals(PlayerListS2CPacket.Action.UPDATE_GAME_MODE)) {
             return;
+        }
 
         playerListS2CPacket.getEntriesOnServer().removeIf(entry ->
-                Vanish.INSTANCE.getVanishedPlayers().stream().anyMatch(vanishedPlayer ->
-                        vanishedPlayer.getUuid().equals(entry.getProfile().getId()) && !vanishedPlayer.getUuid().equals(player.getUuid())
-                )
+            Vanish.INSTANCE.getVanishedPlayers().stream().anyMatch(vanishedPlayer ->
+                vanishedPlayer.getUuid().equals(entry.getProfile().getId()) && !vanishedPlayer.getUuid().equals(player.getUuid())
+            )
         );
     }
 
