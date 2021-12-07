@@ -55,7 +55,9 @@ public abstract class ServerPlayNetworkHandlerMixin {
             EntityIDProvider entityIDProvider = (EntityIDProvider) packet;
             if (Vanish.INSTANCE.getVanishedPlayers().stream().anyMatch(vanishedPlayer ->
                     vanishedPlayer.getEntityId() == entityIDProvider.getIdOnServer())) {
-                ci.cancel();
+                if (player.getId() != entityIDProvider.getIdOnServer()) {
+                    ci.cancel();
+                }
             }
         }
 
