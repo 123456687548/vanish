@@ -19,7 +19,8 @@ public class ServerWorldMixin {
         if (!Vanish.INSTANCE.isActive()) return;
         if (player == null) return;
 
-        if (Vanish.INSTANCE.getVanishedPlayers().stream().anyMatch(vanishedPlayer -> vanishedPlayer.getName().equals(player.getEntityName())))
+
+        if(Vanish.INSTANCE.vanishedPlayers.isVanished(player.getEntityName()))
             ci.cancel();
     }
 }

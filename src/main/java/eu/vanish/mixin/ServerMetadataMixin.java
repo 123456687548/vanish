@@ -26,7 +26,7 @@ public class ServerMetadataMixin {
 
             Vanish.INSTANCE.getServer().getPlayerManager().getPlayerList().forEach(player -> {
                 GameProfile profile = player.getGameProfile();
-                if(Vanish.INSTANCE.getVanishedPlayers().stream().noneMatch(vanishedPlayer -> vanishedPlayer.getUuid().equals(player.getUuid()))){
+                if (Vanish.INSTANCE.vanishedPlayers.isNotVanished(player)) {
                     gameProfiles.add(profile);
                 }
             });

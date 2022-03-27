@@ -8,6 +8,7 @@ import com.mojang.datafixers.util.Pair;
 import eu.vanish.Vanish;
 import eu.vanish.data.FakeTranslatableText;
 import eu.vanish.data.Settings;
+import eu.vanish.data.VList;
 import eu.vanish.data.VanishedPlayer;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.item.ItemStack;
@@ -19,7 +20,6 @@ import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.LiteralText;
 import net.minecraft.util.Formatting;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.UUID;
 
@@ -55,10 +55,10 @@ public final class VanishCommand {
             );
         }
 
-        HashSet<VanishedPlayer> vanishedPlayers = vanish.getVanishedPlayers();
+        VList vanishedPlayers = vanish.vanishedPlayers;
         VanishedPlayer vanishedPlayer = new VanishedPlayer(vanishingPlayer);
 
-        if (vanishedPlayers.contains(vanishedPlayer)) { //unvanish
+        if (vanishedPlayers.isVanished(vanishedPlayer)) { //unvanish
             vanishedPlayers.remove(vanishedPlayer);
 
             vanish.decreaseAmountOfOnlineVanishedPlayers();
@@ -94,7 +94,7 @@ public final class VanishCommand {
                 if (!playerEntity.equals(vanishingPlayer)) {
                     playerEntity.networkHandler.sendPacket(new PlayerListS2CPacket(PlayerListS2CPacket.Action.REMOVE_PLAYER, vanishingPlayer));
                     if (settings.showFakeLeaveMessage()) {
-                    playerEntity.sendMessage(new FakeTranslatableText("multiplayer.player.left", vanishingPlayer.getDisplayName()).formatted(Formatting.YELLOW), MessageType.SYSTEM, NIL_UUID);
+                        playerEntity.sendMessage(new FakeTranslatableText("multiplayer.player.left", vanishingPlayer.getDisplayName()).formatted(Formatting.YELLOW), MessageType.SYSTEM, NIL_UUID);
                     }
                     playerEntity.networkHandler.sendPacket(new EntitiesDestroyS2CPacket(vanishingPlayer.getId()));
                 }
@@ -109,7 +109,7 @@ public final class VanishCommand {
     }
 
     public static void sendFakePlayerListEntry(ServerPlayerEntity player) {
-        if (Vanish.INSTANCE.getVanishedPlayers().stream().noneMatch(vanishedPlayer -> vanishedPlayer.getUuid().equals(player.getUuid()))) return;
+        if (!Vanish.INSTANCE.vanishedPlayers.isVanished(player)) return;
         if (vanishStatusEntity == null) return;
         player.networkHandler.sendPacket(new PlayerListS2CPacket(PlayerListS2CPacket.Action.ADD_PLAYER, vanishStatusEntity));
     }

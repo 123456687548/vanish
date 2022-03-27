@@ -19,7 +19,7 @@ public final class VanishedPlayer {
         return name;
     }
 
-    public UUID getUuid() {
+    public UUID getUUID() {
         return uuid;
     }
 

@@ -4,20 +4,19 @@ import eu.vanish.commands.OverwrittenListCommand;
 import eu.vanish.commands.OverwrittenMsgCommand;
 import eu.vanish.commands.VanishCommand;
 import eu.vanish.data.Settings;
+import eu.vanish.data.VList;
 import eu.vanish.data.VanishedPlayer;
 import net.fabricmc.fabric.api.command.v1.CommandRegistrationCallback;
 import net.minecraft.network.packet.s2c.play.EntitiesDestroyS2CPacket;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 
-import java.util.HashSet;
-
 public enum Vanish {
     INSTANCE;
 
     private boolean active = false;
 
-    private final HashSet<VanishedPlayer> vanishedPlayers = new HashSet<>();
+    public final VList vanishedPlayers = new VList();
 
     private MinecraftServer server = null;
 
@@ -46,7 +45,7 @@ public enum Vanish {
     public void onDisconnect(ServerPlayerEntity player) {
         setServer(player.getServer());
 
-        if (vanishedPlayers.stream().anyMatch(vanishedPlayer -> vanishedPlayer.getUuid().equals(player.getUuid()))) {
+        if (vanishedPlayers.isVanished(player)) {
             decreaseAmountOfOnlineVanishedPlayers();
         }
     }
@@ -54,29 +53,19 @@ public enum Vanish {
     public void onPlayerConnect(ServerPlayerEntity player) {
         setServer(player.getServer());
 
-        if (vanishedPlayers.stream().anyMatch(vanishedPlayer -> vanishedPlayer.getUuid().equals(player.getUuid()))) {
-            vanishedPlayers.forEach(vanishedPlayer -> {
-                if (vanishedPlayer.getUuid().equals(player.getUuid())) {
-                    vanishedPlayer.setEntityId(player.getId());
-                }
+        VanishedPlayer vanishedPlayer = vanishedPlayers.get(player.getUuid());
 
-                server.getPlayerManager().getPlayerList().forEach(playerEntity -> {
-                    if (!vanishedPlayer.getUuid().equals(playerEntity.getUuid())) {
-                        playerEntity.networkHandler.sendPacket(new EntitiesDestroyS2CPacket(vanishedPlayer.getEntityId()));
-                    }
-                });
-            });
+        if (vanishedPlayer == null) return;
 
-            increaseAmountOfOnlineVanishedPlayers();
-        }
-    }
+        vanishedPlayer.setEntityId(player.getId());
 
-    public boolean isVanished(ServerPlayerEntity player) {
-        return isVanished(player.getEntityName());
-    }
+        server.getPlayerManager().getPlayerList().forEach(playerEntity -> {
+            if (!vanishedPlayer.getUUID().equals(playerEntity.getUuid())) {
+                playerEntity.networkHandler.sendPacket(new EntitiesDestroyS2CPacket(vanishedPlayer.getEntityId()));
+            }
+        });
 
-    public boolean isVanished(String name) {
-        return Vanish.INSTANCE.getVanishedPlayers().stream().anyMatch(vanishedPlayer -> vanishedPlayer.getName().equals(name));
+        increaseAmountOfOnlineVanishedPlayers();
     }
 
     public int getFakePlayerCount() {
@@ -89,10 +78,6 @@ public enum Vanish {
 
     public void increaseAmountOfOnlineVanishedPlayers() {
         amountOfVanishedPlayersOnline++;
-    }
-
-    public HashSet<VanishedPlayer> getVanishedPlayers() {
-        return vanishedPlayers;
     }
 
     public MinecraftServer getServer() {

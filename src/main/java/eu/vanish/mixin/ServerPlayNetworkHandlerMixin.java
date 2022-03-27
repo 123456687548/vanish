@@ -3,6 +3,7 @@ package eu.vanish.mixin;
 import eu.vanish.Vanish;
 import eu.vanish.data.FakeTranslatableText;
 import eu.vanish.data.Settings;
+import eu.vanish.data.VanishedPlayer;
 import eu.vanish.exeptions.NoTranslateableMessageException;
 import eu.vanish.mixinterface.EntityIDProvider;
 import eu.vanish.mixinterface.IGameMessageS2CPacket;
@@ -25,7 +26,6 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import java.awt.*;
 import java.util.Arrays;
 
 @Mixin(ServerPlayNetworkHandler.class)
@@ -48,17 +48,18 @@ public abstract class ServerPlayNetworkHandlerMixin {
         }
 
         if (packet instanceof EntityS2CPacket
-            || packet instanceof EntityVelocityUpdateS2CPacket
-            || packet instanceof EntitySetHeadYawS2CPacket
-            || packet instanceof EntityStatusS2CPacket
-            || packet instanceof EntityPositionS2CPacket
-            || packet instanceof EntityAnimationS2CPacket
-            || packet instanceof EntityAttributesS2CPacket
-            || packet instanceof EntityTrackerUpdateS2CPacket
-            || packet instanceof EntityEquipmentUpdateS2CPacket) {
+                || packet instanceof EntityVelocityUpdateS2CPacket
+                || packet instanceof EntitySetHeadYawS2CPacket
+                || packet instanceof EntityStatusS2CPacket
+                || packet instanceof EntityPositionS2CPacket
+                || packet instanceof EntityAnimationS2CPacket
+                || packet instanceof EntityAttributesS2CPacket
+                || packet instanceof EntityTrackerUpdateS2CPacket
+                || packet instanceof EntityEquipmentUpdateS2CPacket) {
+
             EntityIDProvider entityIDProvider = (EntityIDProvider) packet;
-            if (Vanish.INSTANCE.getVanishedPlayers().stream().anyMatch(vanishedPlayer ->
-                vanishedPlayer.getEntityId() == entityIDProvider.getIdOnServer())) {
+
+            if (Vanish.INSTANCE.vanishedPlayers.isVanished(entityIDProvider.getIdOnServer())) {
                 if (player.getId() != entityIDProvider.getIdOnServer()) {
                     ci.cancel();
                 }
@@ -67,8 +68,8 @@ public abstract class ServerPlayNetworkHandlerMixin {
 
         if (packet instanceof ItemPickupAnimationS2CPacket) {
             IItemPickupAnimationS2CPacket entityIDProvider = (IItemPickupAnimationS2CPacket) packet;
-            if (Vanish.INSTANCE.getVanishedPlayers().stream().anyMatch(vanishedPlayer ->
-                vanishedPlayer.getEntityId() == entityIDProvider.getIdOnServer())) {
+
+            if (Vanish.INSTANCE.vanishedPlayers.isVanished(entityIDProvider.getIdOnServer())) {
                 player.networkHandler.sendPacket(new EntitiesDestroyS2CPacket(entityIDProvider.getItemIdOnServer()));
                 ci.cancel();
             }
@@ -102,12 +103,12 @@ public abstract class ServerPlayNetworkHandlerMixin {
             return Arrays.stream(message.getArgs()).anyMatch(arg -> {
                 if (arg instanceof LiteralText) {
                     String name = ((LiteralText) arg).getRawString();
-                    if (!name.equals(player.getEntityName()) && Vanish.INSTANCE.isVanished(name)) {
+                    if (!name.equals(player.getEntityName()) && Vanish.INSTANCE.vanishedPlayers.isVanished(name)) {
                         return true;
                     }
                     return ((LiteralText) arg).getSiblings().stream().anyMatch(sibling -> {
                         String name2 = sibling.getString();
-                        return !name2.equals(player.getEntityName()) && Vanish.INSTANCE.isVanished(name2);
+                        return !name2.equals(player.getEntityName()) && Vanish.INSTANCE.vanishedPlayers.isVanished(name2);
                     });
                 }
                 return false;
@@ -125,11 +126,12 @@ public abstract class ServerPlayNetworkHandlerMixin {
             return;
         }
 
-        playerListS2CPacket.getEntriesOnServer().removeIf(entry ->
-            Vanish.INSTANCE.getVanishedPlayers().stream().anyMatch(vanishedPlayer ->
-                vanishedPlayer.getUuid().equals(entry.getProfile().getId()) && !vanishedPlayer.getUuid().equals(player.getUuid())
-            )
-        );
+        //todo maybe error
+        playerListS2CPacket.getEntriesOnServer().removeIf(entry -> {
+            VanishedPlayer entryPlayer = Vanish.INSTANCE.vanishedPlayers.get(entry.getProfile());
+            if(entryPlayer == null) return false;
+            return entryPlayer.getUUID().equals(entry.getProfile().getId()) && !entryPlayer.getUUID().equals(player.getUuid());
+        });
     }
 
     private TranslatableText getTranslateableTextFromPacket(GameMessageS2CPacket packet) throws NoTranslateableMessageException {
