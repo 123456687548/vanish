@@ -9,6 +9,7 @@ import eu.vanish.data.FakeTranslatableText;
 import eu.vanish.data.Settings;
 import eu.vanish.data.VanishedList;
 import eu.vanish.data.VanishedPlayer;
+import net.minecraft.block.entity.CommandBlockBlockEntity;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.MessageType;
@@ -18,6 +19,7 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.LiteralText;
 import net.minecraft.util.Formatting;
+import net.minecraft.util.math.BlockPos;
 
 import java.util.Collection;
 import java.util.List;
@@ -39,7 +41,7 @@ public final class VanishCommand {
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
         dispatcher.register((
                 literal("vanish")
-                        .requires(source -> source.hasPermissionLevel(4))
+                        .requires(source -> sourceIsCommandblock(source) || source.hasPermissionLevel(4))
                         .executes(context -> toggleVanish(context.getSource().getPlayer())))
                 .then((
                         argument("target", player())
@@ -276,5 +278,9 @@ public final class VanishCommand {
         if (!equipmentList.isEmpty()) {
             receiver.networkHandler.sendPacket(new EntityEquipmentUpdateS2CPacket(vanishingPlayer.getId(), equipmentList));
         }
+    }
+
+    private static boolean sourceIsCommandblock(ServerCommandSource source) {
+        return source.getName().equals("@") || source.getWorld().getBlockEntity(new BlockPos(source.getPosition())) instanceof CommandBlockBlockEntity;
     }
 }
