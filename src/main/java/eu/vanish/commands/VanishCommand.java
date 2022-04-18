@@ -41,18 +41,27 @@ public final class VanishCommand {
                 literal("vanish")
                         .requires(source -> source.hasPermissionLevel(4))
                         .executes(context -> toggleVanish(context.getSource().getPlayer())))
-                .then(
+                .then((
                         argument("target", player())
                                 .executes(context -> toggleVanish(getPlayer(context, "target"))))
-                .then(
+                        .then(argument("on", bool())
+                                .executes(context -> toggleVanish(getPlayer(context, "target"), getBool(context, "on")))))
+                .then((
                         argument("targets", players())
                                 .executes(context -> toggleVanish(getPlayers(context, "targets"))))
+                        .then(argument("on", bool())
+                                .executes(context -> toggleVanish(getPlayers(context, "targets"), getBool(context, "on")))))
                 .then((
                         literal("all")
                                 .executes(context -> vanishAllToggle(context.getSource(), true)))
                         .then(argument("on", bool())
                                 .executes(context -> vanishAllToggle(context.getSource(), getBool(context, "on")))))
         );
+    }
+
+    private static int toggleVanish(Collection<ServerPlayerEntity> players, boolean enable) {
+        players.forEach(player -> toggleVanish(player, enable));
+        return 1;
     }
 
     private static int toggleVanish(Collection<ServerPlayerEntity> executor) {
