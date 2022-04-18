@@ -25,8 +25,9 @@ public final class Settings {
     private boolean overwriteMsgCommand = true;
     private boolean overwriteListCommand = true;
     private boolean fakePlayerCount = true;
-
     private boolean persistent = true;
+    private boolean logVanishToConsole = false;
+    private boolean logUnvanishToConsole = false;
 
     private Settings() {
 
@@ -66,6 +67,14 @@ public final class Settings {
 
     public boolean fakePlayerCount() {
         return fakePlayerCount;
+    }
+
+    public boolean isLogVanishToConsole() {
+        return logVanishToConsole;
+    }
+
+    public boolean isLogUnvanishToConsole(){
+        return logUnvanishToConsole;
     }
 
     public boolean isPersistent() {

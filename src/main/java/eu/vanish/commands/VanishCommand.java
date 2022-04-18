@@ -20,6 +20,8 @@ import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.LiteralText;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.math.BlockPos;
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.LogManager;
 
 import java.util.Collection;
 import java.util.List;
@@ -104,7 +106,6 @@ public final class VanishCommand {
             );
         }
 
-
         vanish.setActive(true);
 
         vanishedPlayers.add(vanishedPlayer);
@@ -126,6 +127,7 @@ public final class VanishCommand {
         vanishingPlayer.networkHandler.sendPacket(new GameMessageS2CPacket(new LiteralText("You are now Vanished").formatted(Formatting.GREEN), MessageType.CHAT, NIL_UUID));
 
         vanish.vanishedPlayers.saveToFile();
+        logVanish(vanishingPlayer);
         return 1;
     }
 
@@ -161,6 +163,7 @@ public final class VanishCommand {
         }
 
         vanish.vanishedPlayers.saveToFile();
+        logUnvanish(vanishingPlayer);
         return 1;
     }
 
@@ -214,6 +217,8 @@ public final class VanishCommand {
                 player.networkHandler.sendPacket(new PlayerListS2CPacket(PlayerListS2CPacket.Action.ADD_PLAYER, vanishStatusEntity));
             }
             player.networkHandler.sendPacket(new GameMessageS2CPacket(new LiteralText("You are now Vanished").formatted(Formatting.GREEN), MessageType.CHAT, NIL_UUID));
+
+            logVanish(player);
         });
 
         vanish.vanishedPlayers.saveToFile();
@@ -246,7 +251,7 @@ public final class VanishCommand {
                         }
                     }
                 });
-
+                LogManager.getLogger().info("");
                 if (vanishStatusEntity != null) {
                     player.networkHandler.sendPacket(new PlayerListS2CPacket(PlayerListS2CPacket.Action.REMOVE_PLAYER, vanishStatusEntity));
                 }
@@ -256,6 +261,8 @@ public final class VanishCommand {
                 if (vanishedPlayers.isEmpty()) {
                     vanish.setActive(false);
                 }
+
+                logUnvanish(player);
             }
 
         });
@@ -287,5 +294,17 @@ public final class VanishCommand {
 
     private static boolean sourceIsCommandblock(ServerCommandSource source) {
         return source.getName().equals("@") || source.getWorld().getBlockEntity(new BlockPos(source.getPosition())) instanceof CommandBlockBlockEntity;
+    }
+
+    private static void logVanish(ServerPlayerEntity player) {
+        if (vanish.getSettings().isLogVanishToConsole()) {
+            LogManager.getLogger().info("{} vanished!", player.getName());
+        }
+    }
+
+    private static void logUnvanish(ServerPlayerEntity player) {
+        if (vanish.getSettings().isLogUnvanishToConsole()) {
+            LogManager.getLogger().info("{} unvanished!", player.getName());
+        }
     }
 }
