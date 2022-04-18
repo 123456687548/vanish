@@ -4,10 +4,6 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import eu.vanish.util.FileManager;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.FileAlreadyExistsException;
-import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 
@@ -83,18 +79,25 @@ public final class Settings {
 
     public static Settings loadSettings() {
         try {
-            return FileManager.readFile(CONFIG_FILE, Settings.class);
+            Settings settings = FileManager.readFile(CONFIG_FILE, Settings.class);
+            saveSettings(settings);
+            return settings;
         } catch (NoSuchFileException e) {
             return createDefaultSettings();
         }
     }
 
-    private static Settings createDefaultSettings() {
-        Settings settings = new Settings();
+    private static void saveSettings(Settings settings){
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
         String json = gson.toJson(settings);
 
         FileManager.createFile(CONFIG_FILE, json.getBytes());
+    }
+
+    private static Settings createDefaultSettings() {
+        Settings settings = new Settings();
+
+        saveSettings(settings);
 
         return settings;
     }
