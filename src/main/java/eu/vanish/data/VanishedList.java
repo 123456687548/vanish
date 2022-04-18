@@ -6,7 +6,7 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import java.util.HashMap;
 import java.util.UUID;
 
-public class VList {
+public class VanishedList {
     private final HashMap<UUID, VanishedPlayer> vanishedPlayers = new HashMap<>();
 
     public void add(VanishedPlayer vanishedPlayer){

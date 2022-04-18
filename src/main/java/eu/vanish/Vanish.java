@@ -4,7 +4,7 @@ import eu.vanish.commands.OverwrittenListCommand;
 import eu.vanish.commands.OverwrittenMsgCommand;
 import eu.vanish.commands.VanishCommand;
 import eu.vanish.data.Settings;
-import eu.vanish.data.VList;
+import eu.vanish.data.VanishedList;
 import eu.vanish.data.VanishedPlayer;
 import net.fabricmc.fabric.api.command.v1.CommandRegistrationCallback;
 import net.minecraft.network.packet.s2c.play.EntitiesDestroyS2CPacket;
@@ -16,7 +16,7 @@ public enum Vanish {
 
     private boolean active = false;
 
-    public final VList vanishedPlayers = new VList();
+    public final VanishedList vanishedPlayers = new VanishedList();
 
     private MinecraftServer server = null;
 
