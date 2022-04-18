@@ -3,6 +3,7 @@ package eu.vanish.commands;
 import com.google.common.collect.Lists;
 import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.CommandDispatcher;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.datafixers.util.Pair;
 import eu.vanish.Vanish;
 import eu.vanish.data.FakeTranslatableText;
@@ -20,7 +21,6 @@ import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.LiteralText;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.math.BlockPos;
-import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 
 import java.util.Collection;
@@ -60,6 +60,8 @@ public final class VanishCommand {
                                 .executes(context -> vanishAllToggle(context.getSource(), true)))
                         .then(argument("on", bool())
                                 .executes(context -> vanishAllToggle(context.getSource(), getBool(context, "on")))))
+                .then((literal("reload")
+                        .executes(context -> reloadSettings(context.getSource()))))
         );
     }
 
@@ -294,6 +296,17 @@ public final class VanishCommand {
 
     private static boolean sourceIsCommandblock(ServerCommandSource source) {
         return source.getName().equals("@") || source.getWorld().getBlockEntity(new BlockPos(source.getPosition())) instanceof CommandBlockBlockEntity;
+    }
+
+    private static int reloadSettings(ServerCommandSource source) {
+        vanish.reloadSettings();
+
+        try {
+            ServerPlayerEntity executor = source.getPlayer();
+            executor.networkHandler.sendPacket(new GameMessageS2CPacket(new LiteralText("Reloaded vanish settings").formatted(Formatting.YELLOW), MessageType.CHAT, NIL_UUID));
+        } catch (CommandSyntaxException ignore) {
+        }
+        return 1;
     }
 
     private static void logVanish(ServerPlayerEntity player) {

@@ -98,6 +98,10 @@ public enum Vanish {
         return settings;
     }
 
+    public void reloadSettings(){
+        settings = Settings.loadSettings();
+    }
+
     public void setActive(boolean active) {
         this.active = active;
     }
