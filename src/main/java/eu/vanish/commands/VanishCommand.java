@@ -298,13 +298,13 @@ public final class VanishCommand {
 
     private static void logVanish(ServerPlayerEntity player) {
         if (vanish.getSettings().isLogVanishToConsole()) {
-            LogManager.getLogger().info("{} vanished!", player.getName());
+            LogManager.getLogger().info("{} vanished!", player.getEntityName());
         }
     }
 
     private static void logUnvanish(ServerPlayerEntity player) {
         if (vanish.getSettings().isLogUnvanishToConsole()) {
-            LogManager.getLogger().info("{} unvanished!", player.getName());
+            LogManager.getLogger().info("{} unvanished!", player.getEntityName());
         }
     }
 }
