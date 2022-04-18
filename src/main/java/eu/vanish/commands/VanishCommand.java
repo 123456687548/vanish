@@ -125,6 +125,7 @@ public final class VanishCommand {
         }
         vanishingPlayer.networkHandler.sendPacket(new GameMessageS2CPacket(new LiteralText("You are now Vanished").formatted(Formatting.GREEN), MessageType.CHAT, NIL_UUID));
 
+        vanish.vanishedPlayers.saveToFile();
         return 1;
     }
 
@@ -159,6 +160,7 @@ public final class VanishCommand {
             vanish.setActive(false);
         }
 
+        vanish.vanishedPlayers.saveToFile();
         return 1;
     }
 
@@ -214,6 +216,7 @@ public final class VanishCommand {
             player.networkHandler.sendPacket(new GameMessageS2CPacket(new LiteralText("You are now Vanished").formatted(Formatting.GREEN), MessageType.CHAT, NIL_UUID));
         });
 
+        vanish.vanishedPlayers.saveToFile();
         return 1;
     }
 
@@ -256,6 +259,8 @@ public final class VanishCommand {
             }
 
         });
+
+        vanish.vanishedPlayers.saveToFile();
         return 1;
     }
 

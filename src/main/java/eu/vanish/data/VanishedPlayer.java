@@ -7,7 +7,7 @@ import java.util.UUID;
 public final class VanishedPlayer {
     private final String name;
     private final UUID uuid;
-    private int entityId;
+    private transient int entityId;
 
     public VanishedPlayer(ServerPlayerEntity player) {
         this.name = player.getEntityName();

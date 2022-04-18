@@ -6,6 +6,7 @@ import eu.vanish.commands.VanishCommand;
 import eu.vanish.data.Settings;
 import eu.vanish.data.VanishedList;
 import eu.vanish.data.VanishedPlayer;
+import eu.vanish.util.FileManager;
 import net.fabricmc.fabric.api.command.v1.CommandRegistrationCallback;
 import net.minecraft.network.packet.s2c.play.EntitiesDestroyS2CPacket;
 import net.minecraft.server.MinecraftServer;
@@ -16,7 +17,7 @@ public enum Vanish {
 
     private boolean active = false;
 
-    public final VanishedList vanishedPlayers = new VanishedList();
+    public VanishedList vanishedPlayers;
 
     private MinecraftServer server = null;
 
@@ -25,7 +26,9 @@ public enum Vanish {
     private Settings settings;
 
     public void init() {
+        FileManager.init();
         settings = Settings.loadSettings();
+        vanishedPlayers = new VanishedList();
         registerCommands();
     }
 
