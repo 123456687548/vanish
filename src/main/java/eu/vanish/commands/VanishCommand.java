@@ -9,6 +9,7 @@ import eu.vanish.Vanish;
 import eu.vanish.data.FakeTranslatableText;
 import eu.vanish.data.Settings;
 import eu.vanish.data.VanishedPlayer;
+import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.MessageType;
@@ -36,7 +37,7 @@ public final class VanishCommand {
 
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
         LiteralCommandNode<ServerCommandSource> commandNode = dispatcher.register(literal("vanish")
-                .requires(source -> source.hasPermissionLevel(4))
+                .requires(Permissions.require("vanish.command", 4))
                 .executes(context -> vanish(context.getSource().getPlayer())));
 //        dispatcher.register(literal("v").redirect(commandNode));
     }
