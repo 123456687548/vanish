@@ -5,7 +5,7 @@ import eu.vanish.commands.OverwrittenMsgCommand;
 import eu.vanish.commands.VanishCommand;
 import eu.vanish.data.Settings;
 import eu.vanish.data.VanishedPlayer;
-import net.fabricmc.fabric.api.command.v1.CommandRegistrationCallback;
+import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.minecraft.network.packet.s2c.play.EntitiesDestroyS2CPacket;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -31,7 +31,7 @@ public enum Vanish {
     }
 
     private void registerCommands() {
-        CommandRegistrationCallback.EVENT.register((dispatcher, dedicated) -> {
+        CommandRegistrationCallback.EVENT.register((dispatcher, dedicated, registrationEnvironment) -> {
                     VanishCommand.register(dispatcher);
                     if (settings.overwriteListCommand()) {
                         OverwrittenListCommand.register(dispatcher);

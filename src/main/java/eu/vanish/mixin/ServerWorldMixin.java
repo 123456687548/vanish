@@ -15,7 +15,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public class ServerWorldMixin {
 
     @Inject(at = @At("HEAD"), cancellable = true, method = "playSound")
-    private void onPlaySound(@Nullable PlayerEntity player, double x, double y, double z, SoundEvent sound, SoundCategory category, float volume, float pitch, CallbackInfo ci) {
+    private void onPlaySound(@Nullable PlayerEntity player, double x, double y, double z, SoundEvent sound, SoundCategory category, float volume, float pitch, long seed, CallbackInfo ci) {
         if (!Vanish.INSTANCE.isActive()) return;
         if (player == null) return;
 

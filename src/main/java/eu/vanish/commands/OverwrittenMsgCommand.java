@@ -10,7 +10,6 @@ import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
-import net.minecraft.text.TranslatableText;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Util;
 
@@ -35,22 +34,22 @@ public final class OverwrittenMsgCommand {
         Consumer<Text> consumer2;
         if (entity instanceof ServerPlayerEntity serverPlayerEntity) {
             consumer2 = (text2) -> {
-                serverPlayerEntity.sendSystemMessage((new TranslatableText("commands.message.display.outgoing", text2, message)).formatted(Formatting.GRAY, Formatting.ITALIC), serverPlayerEntity.getUuid());
+                serverPlayerEntity.sendMessage(Text.translatable("commands.message.display.outgoing", text2, message).formatted(Formatting.GRAY, Formatting.ITALIC));
             };
         } else {
             consumer2 = (text2) -> {
-                source.sendFeedback((new TranslatableText("commands.message.display.outgoing", text2, message)).formatted(Formatting.GRAY, Formatting.ITALIC), false);
+                source.sendFeedback((Text.translatable("commands.message.display.outgoing", text2, message).formatted(Formatting.GRAY, Formatting.ITALIC)), false);
             };
         }
 
         for (ServerPlayerEntity target : targets) {
             if (Vanish.INSTANCE.getVanishedPlayers().stream().anyMatch(vanishedPlayer -> vanishedPlayer.getUuid().equals(target.getUuid()))) {
                 if (targets.size() == 1) {
-                    source.sendFeedback((new TranslatableText("argument.entity.notfound.player")).formatted(Formatting.RED), false);
+                    source.sendFeedback((Text.translatable("argument.entity.notfound.player").formatted(Formatting.RED)), false);
                 }
             } else {
                 consumer2.accept(target.getDisplayName());
-                target.sendSystemMessage((new TranslatableText("commands.message.display.incoming", source.getDisplayName(), message)).formatted(Formatting.GRAY, Formatting.ITALIC), uUID);
+                target.sendMessage(Text.translatable("commands.message.display.incoming", source.getDisplayName(), message).formatted(Formatting.GRAY, Formatting.ITALIC));
             }
         }
 
