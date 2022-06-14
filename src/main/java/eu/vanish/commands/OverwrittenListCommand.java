@@ -29,7 +29,7 @@ public final class OverwrittenListCommand {
 
     private static int executeUuids(ServerCommandSource source) {
         return execute(source, (serverPlayerEntity) -> {
-            return new TranslatableText("commands.list.nameAndId", serverPlayerEntity.getName(), serverPlayerEntity.getGameProfile().getId());
+            return Text.translatable("commands.list.nameAndId", serverPlayerEntity.getName(), serverPlayerEntity.getGameProfile().getId());
         });
     }
 
@@ -38,7 +38,7 @@ public final class OverwrittenListCommand {
         List<ServerPlayerEntity> list = new ArrayList<>(playerManager.getPlayerList());
         list.removeIf(Vanish.INSTANCE.vanishedPlayers::isVanished);
         Text text = Texts.join(list, nameProvider);
-        source.sendFeedback(new TranslatableText("commands.list.players", list.size(), playerManager.getMaxPlayerCount(), text), false);
+        source.sendFeedback(Text.translatable("commands.list.players", list.size(), playerManager.getMaxPlayerCount(), text), false);
         return list.size();
     }
 }

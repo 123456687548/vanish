@@ -13,7 +13,6 @@
         "EntityStatusS2CPacketMixin",
         "EntityTrackerUpdateS2CPacketMixin",
         "EntityVelocityUpdateS2CPacketMixin",
-        "GameMessageS2CPacketMixin",
         "ItemPickupAnimationS2CPacketMixin",
         "PlayerListS2CPacketMixin",
         "PlayerManagerMixin",
