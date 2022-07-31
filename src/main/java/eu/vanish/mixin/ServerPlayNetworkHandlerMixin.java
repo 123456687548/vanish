@@ -10,7 +10,9 @@ import eu.vanish.mixinterface.IItemPickupAnimationS2CPacket;
 import eu.vanish.mixinterface.IPlayerListS2CPacket;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
+import net.minecraft.class_7648;
 import net.minecraft.network.Packet;
+import net.minecraft.network.packet.c2s.play.ChatMessageC2SPacket;
 import net.minecraft.network.packet.s2c.play.*;
 import net.minecraft.server.network.ServerPlayNetworkHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -31,8 +33,8 @@ public abstract class ServerPlayNetworkHandlerMixin {
     @Shadow
     public ServerPlayerEntity player;
 
-    @Inject(at = @At("HEAD"), cancellable = true, method = "sendPacket(Lnet/minecraft/network/Packet;Lio/netty/util/concurrent/GenericFutureListener;)V")
-    private void onSendPacket(Packet<?> packet, @Nullable GenericFutureListener<? extends Future<? super Void>> callback, CallbackInfo ci) {
+    @Inject(at = @At("HEAD"), cancellable = true, method = "sendPacket(Lnet/minecraft/network/Packet;Lnet/minecraft/class_7648;)V")
+    private void onSendPacket(Packet<?> packet, @Nullable class_7648 arg, CallbackInfo ci) {
         if (!Vanish.INSTANCE.isActive()) {
             return;
         }
@@ -45,7 +47,7 @@ public abstract class ServerPlayNetworkHandlerMixin {
 
         if (settings.removeChatMessage()) {
             if (packet instanceof ChatMessageS2CPacket chatMessagePacket) {
-                if (Vanish.INSTANCE.vanishedPlayers.isVanished(chatMessagePacket.sender().name().getString())) {
+                if (Vanish.INSTANCE.vanishedPlayers.isVanished(chatMessagePacket.message().signedHeader().sender())) {
                     ci.cancel();
                 }
             }
@@ -134,7 +136,7 @@ public abstract class ServerPlayNetworkHandlerMixin {
         //todo maybe error
         playerListS2CPacket.getEntriesOnServer().removeIf(entry -> {
             VanishedPlayer entryPlayer = Vanish.INSTANCE.vanishedPlayers.get(entry.getProfile());
-            if(entryPlayer == null) return false;
+            if (entryPlayer == null) return false;
             return entryPlayer.getUUID().equals(entry.getProfile().getId()) && !entryPlayer.getUUID().equals(player.getUuid());
         });
     }

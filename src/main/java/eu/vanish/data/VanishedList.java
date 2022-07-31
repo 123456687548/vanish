@@ -85,6 +85,14 @@ public class VanishedList {
         return !containsUUID(player.getUuid());
     }
 
+    public boolean isVanished(UUID uuid) {
+        return containsUUID(uuid);
+    }
+
+    public boolean isNotVanished(UUID uuid) {
+        return !containsUUID(uuid);
+    }
+
     private boolean containsUUID(UUID uuid) {
         return vanishedPlayers.containsKey(uuid);
     }

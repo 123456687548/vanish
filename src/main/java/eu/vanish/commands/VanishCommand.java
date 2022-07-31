@@ -126,7 +126,7 @@ public final class VanishCommand {
         if (vanishStatusEntity != null) {
             vanishingPlayer.networkHandler.sendPacket(new PlayerListS2CPacket(PlayerListS2CPacket.Action.ADD_PLAYER, vanishStatusEntity));
         }
-        vanishingPlayer.networkHandler.sendPacket(new GameMessageS2CPacket(Text.literal("You are now Vanished").formatted(Formatting.GREEN), 1));
+        vanishingPlayer.networkHandler.sendPacket(new GameMessageS2CPacket(Text.literal("You are now Vanished").formatted(Formatting.GREEN), true));
 
         vanish.vanishedPlayers.saveToFile();
         logVanish(vanishingPlayer);
@@ -158,7 +158,7 @@ public final class VanishCommand {
             vanishingPlayer.networkHandler.sendPacket(new PlayerListS2CPacket(PlayerListS2CPacket.Action.REMOVE_PLAYER, vanishStatusEntity));
         }
 
-        vanishingPlayer.networkHandler.sendPacket(new GameMessageS2CPacket(Text.literal("You are no longer Vanished").formatted(Formatting.RED), 1));
+        vanishingPlayer.networkHandler.sendPacket(new GameMessageS2CPacket(Text.literal("You are no longer Vanished").formatted(Formatting.RED), true));
 
         if (vanishedPlayers.isEmpty()) {
             vanish.setActive(false);
@@ -219,7 +219,7 @@ public final class VanishCommand {
             if (vanishStatusEntity != null) {
                 player.networkHandler.sendPacket(new PlayerListS2CPacket(PlayerListS2CPacket.Action.ADD_PLAYER, vanishStatusEntity));
             }
-            player.networkHandler.sendPacket(new GameMessageS2CPacket(Text.literal("You are now Vanished").formatted(Formatting.GREEN), 1));
+            player.networkHandler.sendPacket(new GameMessageS2CPacket(Text.literal("You are now Vanished").formatted(Formatting.GREEN), true));
 
             logVanish(player);
         });
@@ -259,7 +259,7 @@ public final class VanishCommand {
                     player.networkHandler.sendPacket(new PlayerListS2CPacket(PlayerListS2CPacket.Action.REMOVE_PLAYER, vanishStatusEntity));
                 }
 
-                player.networkHandler.sendPacket(new GameMessageS2CPacket(Text.literal("You are no longer Vanished").formatted(Formatting.RED), 1));
+                player.networkHandler.sendPacket(new GameMessageS2CPacket(Text.literal("You are no longer Vanished").formatted(Formatting.RED), true));
 
                 if (vanishedPlayers.isEmpty()) {
                     vanish.setActive(false);
@@ -303,7 +303,7 @@ public final class VanishCommand {
         vanish.reloadSettings();
 
         ServerPlayerEntity executor = source.getPlayer();
-        executor.networkHandler.sendPacket(new GameMessageS2CPacket(Text.literal("Reloaded vanish settings").formatted(Formatting.YELLOW), 1));
+        executor.networkHandler.sendPacket(new GameMessageS2CPacket(Text.literal("Reloaded vanish settings").formatted(Formatting.YELLOW), true));
         return 1;
     }
 
