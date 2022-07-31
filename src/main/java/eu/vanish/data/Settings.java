@@ -2,16 +2,15 @@ package eu.vanish.data;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import eu.vanish.util.FileManager;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.FileAlreadyExistsException;
-import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 
+import static eu.vanish.util.FileManager.ROOT_FOLDER;
+
 public final class Settings {
-    private static transient Path configFile;
+    private static final transient Path CONFIG_FILE = ROOT_FOLDER.resolve("config.json");
 
     private boolean showFakeLeaveMessage = true;
     private boolean showFakeJoinMessage = true;
@@ -22,6 +21,9 @@ public final class Settings {
     private boolean overwriteMsgCommand = true;
     private boolean overwriteListCommand = true;
     private boolean fakePlayerCount = true;
+    private boolean persistent = true;
+    private boolean logVanishToConsole = false;
+    private boolean logUnvanishToConsole = false;
 
     private Settings() {
 
@@ -43,7 +45,7 @@ public final class Settings {
         return removeChatMessage;
     }
 
-    public boolean removeWisperMessage(){
+    public boolean removeWisperMessage() {
         return removeWisperMessage;
     }
 
@@ -63,47 +65,40 @@ public final class Settings {
         return fakePlayerCount;
     }
 
+    public boolean isLogVanishToConsole() {
+        return logVanishToConsole;
+    }
+
+    public boolean isLogUnvanishToConsole(){
+        return logUnvanishToConsole;
+    }
+
+    public boolean isPersistent() {
+        return persistent;
+    }
+
     public static Settings loadSettings() {
-        loadConfigFilePath();
-
-        Gson gson = new GsonBuilder().setPrettyPrinting().create();
-
         try {
-            String json = new String(Files.readAllBytes(configFile));
-            return gson.fromJson(json, Settings.class);
-        } catch (NoSuchFileException noFile) {
+            Settings settings = FileManager.readFile(CONFIG_FILE, Settings.class);
+            saveSettings(settings);
+            return settings;
+        } catch (NoSuchFileException e) {
             return createDefaultSettings();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
         }
+    }
+
+    private static void saveSettings(Settings settings){
+        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+        String json = gson.toJson(settings);
+
+        FileManager.createFile(CONFIG_FILE, json.getBytes());
     }
 
     private static Settings createDefaultSettings() {
         Settings settings = new Settings();
-        Gson gson = new GsonBuilder().setPrettyPrinting().create();
-        String json = gson.toJson(settings);
 
-        try {
-            Files.write(configFile, json.getBytes());
-        } catch (IOException e) {
-            throw new RuntimeException("Could not create Vanish config file");
-        }
+        saveSettings(settings);
 
         return settings;
-    }
-
-    private static void loadConfigFilePath() {
-        Path serverFolder = new File(".").toPath().normalize();
-        Path vanishConfigFolder = serverFolder.resolve("mods/vanish");
-
-        try {
-            Files.createDirectory(vanishConfigFolder);
-        } catch (FileAlreadyExistsException ignore) {
-
-        } catch (IOException e) {
-            throw new RuntimeException("Could not create Vanish config folder");
-        }
-
-        configFile = vanishConfigFolder.resolve("config.json");
     }
 }

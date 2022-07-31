@@ -3,13 +3,16 @@ package eu.vanish.mixin;
 import eu.vanish.Vanish;
 import eu.vanish.data.FakeTranslatableTextContent;
 import eu.vanish.data.Settings;
+import eu.vanish.data.VanishedPlayer;
 import eu.vanish.exeptions.NoTranslateableMessageException;
 import eu.vanish.mixinterface.EntityIDProvider;
 import eu.vanish.mixinterface.IItemPickupAnimationS2CPacket;
 import eu.vanish.mixinterface.IPlayerListS2CPacket;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
+import net.minecraft.class_7648;
 import net.minecraft.network.Packet;
+import net.minecraft.network.packet.c2s.play.ChatMessageC2SPacket;
 import net.minecraft.network.packet.s2c.play.*;
 import net.minecraft.server.network.ServerPlayNetworkHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -30,8 +33,8 @@ public abstract class ServerPlayNetworkHandlerMixin {
     @Shadow
     public ServerPlayerEntity player;
 
-    @Inject(at = @At("HEAD"), cancellable = true, method = "sendPacket(Lnet/minecraft/network/Packet;Lio/netty/util/concurrent/GenericFutureListener;)V")
-    private void onSendPacket(Packet<?> packet, @Nullable GenericFutureListener<? extends Future<? super Void>> callback, CallbackInfo ci) {
+    @Inject(at = @At("HEAD"), cancellable = true, method = "sendPacket(Lnet/minecraft/network/Packet;Lnet/minecraft/class_7648;)V")
+    private void onSendPacket(Packet<?> packet, @Nullable class_7648 arg, CallbackInfo ci) {
         if (!Vanish.INSTANCE.isActive()) {
             return;
         }
@@ -44,7 +47,7 @@ public abstract class ServerPlayNetworkHandlerMixin {
 
         if (settings.removeChatMessage()) {
             if (packet instanceof ChatMessageS2CPacket chatMessagePacket) {
-                if (Vanish.INSTANCE.isVanished(chatMessagePacket.sender().name().getString())) {
+                if (Vanish.INSTANCE.vanishedPlayers.isVanished(chatMessagePacket.message().signedHeader().sender())) {
                     ci.cancel();
                 }
             }
@@ -59,9 +62,10 @@ public abstract class ServerPlayNetworkHandlerMixin {
                 || packet instanceof EntityAttributesS2CPacket
                 || packet instanceof EntityTrackerUpdateS2CPacket
                 || packet instanceof EntityEquipmentUpdateS2CPacket) {
+
             EntityIDProvider entityIDProvider = (EntityIDProvider) packet;
-            if (Vanish.INSTANCE.getVanishedPlayers().stream().anyMatch(vanishedPlayer ->
-                    vanishedPlayer.getEntityId() == entityIDProvider.getIdOnServer())) {
+
+            if (Vanish.INSTANCE.vanishedPlayers.isVanished(entityIDProvider.getIdOnServer())) {
                 if (player.getId() != entityIDProvider.getIdOnServer()) {
                     ci.cancel();
                 }
@@ -70,8 +74,8 @@ public abstract class ServerPlayNetworkHandlerMixin {
 
         if (packet instanceof ItemPickupAnimationS2CPacket) {
             IItemPickupAnimationS2CPacket entityIDProvider = (IItemPickupAnimationS2CPacket) packet;
-            if (Vanish.INSTANCE.getVanishedPlayers().stream().anyMatch(vanishedPlayer ->
-                    vanishedPlayer.getEntityId() == entityIDProvider.getIdOnServer())) {
+
+            if (Vanish.INSTANCE.vanishedPlayers.isVanished(entityIDProvider.getIdOnServer())) {
                 player.networkHandler.sendPacket(new EntitiesDestroyS2CPacket(entityIDProvider.getItemIdOnServer()));
                 ci.cancel();
             }
@@ -107,13 +111,13 @@ public abstract class ServerPlayNetworkHandlerMixin {
 
                 MutableText text = (MutableText) arg;
                 String name = text.getString();
-                if (!name.equals(player.getEntityName()) && Vanish.INSTANCE.isVanished(name)) {
+                if (!name.equals(player.getEntityName()) && Vanish.INSTANCE.vanishedPlayers.isVanished(name)) {
                     return true;
                 }
 
                 return text.getSiblings().stream().anyMatch(sibling -> {
                     String name2 = sibling.getString();
-                    return !name2.equals(player.getEntityName()) && Vanish.INSTANCE.isVanished(name2);
+                    return !name2.equals(player.getEntityName()) && Vanish.INSTANCE.vanishedPlayers.isVanished(name2);
                 });
             });
         } catch (NoTranslateableMessageException ignore) {
@@ -129,11 +133,12 @@ public abstract class ServerPlayNetworkHandlerMixin {
             return;
         }
 
-        playerListS2CPacket.getEntriesOnServer().removeIf(entry ->
-                Vanish.INSTANCE.getVanishedPlayers().stream().anyMatch(vanishedPlayer ->
-                        vanishedPlayer.getUuid().equals(entry.getProfile().getId()) && !vanishedPlayer.getUuid().equals(player.getUuid())
-                )
-        );
+        //todo maybe error
+        playerListS2CPacket.getEntriesOnServer().removeIf(entry -> {
+            VanishedPlayer entryPlayer = Vanish.INSTANCE.vanishedPlayers.get(entry.getProfile());
+            if (entryPlayer == null) return false;
+            return entryPlayer.getUUID().equals(entry.getProfile().getId()) && !entryPlayer.getUUID().equals(player.getUuid());
+        });
     }
 
     private TranslatableTextContent getTranslateableTextFromPacket(GameMessageS2CPacket packet) throws NoTranslateableMessageException {

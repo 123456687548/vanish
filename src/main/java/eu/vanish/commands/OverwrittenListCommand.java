@@ -36,9 +36,7 @@ public final class OverwrittenListCommand {
     private static int execute(ServerCommandSource source, Function<ServerPlayerEntity, Text> nameProvider) {
         PlayerManager playerManager = source.getServer().getPlayerManager();
         List<ServerPlayerEntity> list = new ArrayList<>(playerManager.getPlayerList());
-        list.removeIf(entry -> Vanish.INSTANCE.getVanishedPlayers().stream().anyMatch(vanishedPlayer ->
-                vanishedPlayer.getUuid().equals(entry.getUuid())
-        ));
+        list.removeIf(Vanish.INSTANCE.vanishedPlayers::isVanished);
         Text text = Texts.join(list, nameProvider);
         source.sendFeedback(Text.translatable("commands.list.players", list.size(), playerManager.getMaxPlayerCount(), text), false);
         return list.size();
