@@ -8,9 +8,12 @@ import eu.vanish.data.VanishedList;
 import eu.vanish.data.VanishedPlayer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import eu.vanish.util.FileManager;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.minecraft.network.packet.s2c.play.EntitiesDestroyS2CPacket;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
+
+import static net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents.SERVER_STARTED;
 
 public enum Vanish {
     INSTANCE;
@@ -28,8 +31,14 @@ public enum Vanish {
     public void init() {
         FileManager.init();
         settings = Settings.loadSettings();
-        vanishedPlayers = new VanishedList();
         registerCommands();
+
+        SERVER_STARTED.register(server -> {
+            setServer(server);
+            vanishedPlayers = new VanishedList();
+            VanishCommand.init();
+            setActive(!vanishedPlayers.isEmpty());
+        });
     }
 
     private void registerCommands() {
@@ -46,16 +55,12 @@ public enum Vanish {
     }
 
     public void onDisconnect(ServerPlayerEntity player) {
-        setServer(player.getServer());
-
         if (vanishedPlayers.isVanished(player)) {
             decreaseAmountOfOnlineVanishedPlayers();
         }
     }
 
     public void onPlayerConnect(ServerPlayerEntity player) {
-        setServer(player.getServer());
-
         VanishedPlayer vanishedPlayer = vanishedPlayers.get(player.getUuid());
 
         if (vanishedPlayer == null) return;
@@ -65,6 +70,8 @@ public enum Vanish {
         server.getPlayerManager().getPlayerList().forEach(playerEntity -> {
             if (!vanishedPlayer.getUUID().equals(playerEntity.getUuid())) {
                 playerEntity.networkHandler.sendPacket(new EntitiesDestroyS2CPacket(vanishedPlayer.getEntityId()));
+            } else {
+                VanishCommand.sendFakePlayerListEntry(playerEntity);
             }
         });
 
