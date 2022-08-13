@@ -17,7 +17,13 @@ It stops the server from sending specific packets to other players that notify t
 - Settings file
 
 # Usage:
-/vanish
+- "/vanish" toggle vanish on yourself
+- "/vanish all" / "/vanish all true" vanishes all players
+- "/vanish all false" unvanishes all players
+- "/vanish &lt;target&gt;" toggle vanish on target
+- "/vanish &lt;target&gt; &lt;true/false&gt;" set vanish on target
+- "/vanish reload" reloads settings file
+- "/vanish list" lists the vanished players
 
 # Download
 - [CurseForge](https://www.curseforge.com/minecraft/mc-mods/vanish)
