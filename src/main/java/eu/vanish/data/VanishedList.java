@@ -11,6 +11,7 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import java.lang.reflect.Type;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.UUID;
 
@@ -130,5 +131,9 @@ public class VanishedList {
         } catch (NoSuchFileException e) {
             return new HashMap<>();
         }
+    }
+
+    public Collection<VanishedPlayer> getVanishedPlayers(){
+        return vanishedPlayers.values();
     }
 }

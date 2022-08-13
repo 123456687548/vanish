@@ -24,6 +24,7 @@ import net.minecraft.util.math.BlockPos;
 import org.apache.logging.log4j.LogManager;
 
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 import java.util.UUID;
 
@@ -71,6 +72,8 @@ public final class VanishCommand {
                                 .executes(context -> vanishAllToggle(context.getSource(), getBool(context, "on")))))
                 .then((literal("reload")
                         .executes(context -> reloadSettings(context.getSource()))))
+                .then((literal("list")
+                        .executes(context -> listVanishedPlayers(context.getSource()))))
         );
     }
 
@@ -282,6 +285,35 @@ public final class VanishCommand {
 
         ServerPlayerEntity executor = source.getPlayer();
         executor.networkHandler.sendPacket(new GameMessageS2CPacket(Text.literal("Reloaded vanish settings").formatted(Formatting.YELLOW), true));
+        return 1;
+    }
+
+    private static int listVanishedPlayers(ServerCommandSource source) {
+        ServerPlayerEntity executor = source.getPlayer();
+
+        if (executor == null) return 0;
+
+        if(!vanish.getSettings().isVanishListCommand()) {
+            executor.sendMessage(Text.of("Please enable vanishListCommand inside the settings for this command"));
+            return 1;
+        }
+
+        Collection<VanishedPlayer> vanishedPlayers = vanish.vanishedPlayers.getVanishedPlayers();
+
+        Iterator<VanishedPlayer> iterator = vanishedPlayers.iterator();
+
+        StringBuilder vanishedPlayersString = new StringBuilder("Vanished Players:\n");
+
+        while (iterator.hasNext()) {
+            VanishedPlayer vanishedPlayer = iterator.next();
+            vanishedPlayersString.append(vanishedPlayer.getName());
+            if (iterator.hasNext()) {
+                vanishedPlayersString.append(",\n");
+            }
+        }
+
+        executor.sendMessage(Text.of(vanishedPlayersString.toString()));
+
         return 1;
     }
 

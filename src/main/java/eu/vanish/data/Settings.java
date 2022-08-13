@@ -25,6 +25,8 @@ public final class Settings {
     private boolean logVanishToConsole = false;
     private boolean logUnvanishToConsole = false;
 
+    private boolean vanishListCommand = false;
+
     private Settings() {
 
     }
@@ -75,6 +77,10 @@ public final class Settings {
 
     public boolean isPersistent() {
         return persistent;
+    }
+
+    public boolean isVanishListCommand() {
+        return vanishListCommand;
     }
 
     public static Settings loadSettings() {
