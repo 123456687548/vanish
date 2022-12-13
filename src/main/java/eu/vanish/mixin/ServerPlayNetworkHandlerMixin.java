@@ -10,7 +10,6 @@ import eu.vanish.mixinterface.IItemPickupAnimationS2CPacket;
 import eu.vanish.mixinterface.IPlayerListS2CPacket;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
-import net.minecraft.class_7648;
 import net.minecraft.network.Packet;
 import net.minecraft.network.packet.c2s.play.ChatMessageC2SPacket;
 import net.minecraft.network.packet.s2c.play.*;
@@ -33,8 +32,8 @@ public abstract class ServerPlayNetworkHandlerMixin {
     @Shadow
     public ServerPlayerEntity player;
 
-    @Inject(at = @At("HEAD"), cancellable = true, method = "sendPacket(Lnet/minecraft/network/Packet;Lnet/minecraft/class_7648;)V")
-    private void onSendPacket(Packet<?> packet, @Nullable class_7648 arg, CallbackInfo ci) {
+    @Inject(at = @At("HEAD"), cancellable = true, method = "sendPacket(Lnet/minecraft/network/Packet;Lio/netty/util/concurrent/GenericFutureListener;)V")
+    private void onSendPacket(Packet<?> packet, GenericFutureListener<? extends Future<? super Void>> listener, CallbackInfo ci) {
         if (!Vanish.INSTANCE.isActive()) {
             return;
         }
@@ -47,7 +46,7 @@ public abstract class ServerPlayNetworkHandlerMixin {
 
         if (settings.removeChatMessage()) {
             if (packet instanceof ChatMessageS2CPacket chatMessagePacket) {
-                if (Vanish.INSTANCE.vanishedPlayers.isVanished(chatMessagePacket.message().signedHeader().sender())) {
+                if (Vanish.INSTANCE.vanishedPlayers.isVanished(chatMessagePacket.sender().name().getString())) {
                     ci.cancel();
                 }
             }
