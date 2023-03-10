@@ -10,6 +10,8 @@ import eu.vanish.data.FakeTranslatableTextContent;
 import eu.vanish.data.Settings;
 import eu.vanish.data.VanishedList;
 import eu.vanish.data.VanishedPlayer;
+import eu.vanish.util.FPAPIUtilsWrapper;
+import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.minecraft.block.entity.CommandBlockBlockEntity;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.item.ItemStack;
@@ -53,7 +55,8 @@ public final class VanishCommand {
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
         dispatcher.register((
                 literal("vanish")
-                        .requires(source -> sourceIsCommandblock(source) || source.hasPermissionLevel(4))
+//                        .requires(source -> sourceIsCommandblock(source) || source.hasPermissionLevel(4))
+                        .requires(FPAPIUtilsWrapper.require("vanish.vanish", true))
                         .executes(context -> toggleVanish(context.getSource().getPlayer())))
                 .then((
                         argument("target", player())
