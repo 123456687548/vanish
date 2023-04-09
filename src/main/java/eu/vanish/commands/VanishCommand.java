@@ -3,7 +3,6 @@ package eu.vanish.commands;
 import com.google.common.collect.Lists;
 import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.CommandDispatcher;
-import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.datafixers.util.Pair;
 import eu.vanish.Vanish;
 import eu.vanish.data.FakeTranslatableTextContent;
@@ -21,6 +20,7 @@ import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Vec3i;
 import org.apache.logging.log4j.LogManager;
 
 import java.util.Collection;
@@ -46,7 +46,6 @@ public final class VanishCommand {
                 vanish.getServer()
                 , world
                 , new GameProfile(UUID.randomUUID(), " You're Vanished")
-                , null
         );
     }
 
@@ -89,17 +88,12 @@ public final class VanishCommand {
     }
 
     private static int toggleVanish(ServerPlayerEntity executor, boolean enable) {
-        if (enable) {
-            return vanish(executor);
-        } else {
-            return unvanish(executor);
-        }
+        return enable ? vanish(executor) :  unvanish(executor);
     }
 
     private static int toggleVanish(ServerPlayerEntity executor) {
         VanishedList vanishedPlayers = vanish.vanishedPlayers;
         VanishedPlayer executorPlayer = new VanishedPlayer(executor);
-
         return toggleVanish(executor, vanishedPlayers.isNotVanished(executorPlayer));
     }
 
@@ -109,24 +103,22 @@ public final class VanishCommand {
         if (vanishedPlayers.isVanished(vanishingPlayer)) return 1;
 
         vanish.setActive(true);
-
         vanishedPlayers.add(vanishedPlayer);
         vanish.increaseAmountOfOnlineVanishedPlayers();
 
         vanish.getServer().getPlayerManager().getPlayerList().forEach(playerEntity -> {
             if (!playerEntity.equals(vanishingPlayer)) {
-                playerEntity.networkHandler.sendPacket(new PlayerListS2CPacket(PlayerListS2CPacket.Action.REMOVE_PLAYER, vanishingPlayer));
-                if (settings.showFakeLeaveMessage()) {
-                    playerEntity.sendMessage(MutableText.of(new FakeTranslatableTextContent("multiplayer.player.left", vanishingPlayer.getDisplayName())).formatted(Formatting.YELLOW));
-                }
+                playerEntity.networkHandler.sendPacket(new PlayerRemoveS2CPacket(List.of(vanishingPlayer.getUuid())));
+
                 playerEntity.networkHandler.sendPacket(new EntitiesDestroyS2CPacket(vanishingPlayer.getId()));
+            }
+            if (settings.showFakeLeaveMessage()) {
+                vanish.getServer().getPlayerManager().broadcast( MutableText.of(new FakeTranslatableTextContent("multiplayer.player.left", null, new Object[]{vanishingPlayer.getDisplayName()})).formatted(Formatting.YELLOW), false);
             }
         });
 
         sendFakePlayerListEntry(vanishingPlayer);
-
         vanishingPlayer.networkHandler.sendPacket(new GameMessageS2CPacket(Text.literal("You are now Vanished").formatted(Formatting.GREEN), true));
-
         vanish.vanishedPlayers.saveToFile();
         logVanish(vanishingPlayer);
         return 1;
@@ -144,12 +136,12 @@ public final class VanishCommand {
         vanish.getServer().getPlayerManager().getPlayerList().forEach(playerEntity -> {
             if (!playerEntity.equals(vanishingPlayer)) {
                 playerEntity.networkHandler.sendPacket(new PlayerListS2CPacket(PlayerListS2CPacket.Action.ADD_PLAYER, vanishingPlayer));
-
                 playerEntity.networkHandler.sendPacket(new PlayerSpawnS2CPacket(vanishingPlayer));
                 updateEquipment(vanishingPlayer, playerEntity);
-                if (settings.showFakeJoinMessage()) {
-                    playerEntity.sendMessage(MutableText.of(new FakeTranslatableTextContent("multiplayer.player.joined", vanishingPlayer.getDisplayName())).formatted(Formatting.YELLOW));
-                }
+
+            }
+            if (settings.showFakeJoinMessage()) {
+                vanish.getServer().getPlayerManager().broadcast( MutableText.of(new FakeTranslatableTextContent("multiplayer.player.joined", null, new Object[]{vanishingPlayer.getDisplayName()})).formatted(Formatting.YELLOW), false);
             }
         });
 
@@ -190,9 +182,10 @@ public final class VanishCommand {
 
             vanish.getServer().getPlayerManager().getPlayerList().forEach(playerEntity -> {
                 if (!playerEntity.equals(player)) {
-                    playerEntity.networkHandler.sendPacket(new PlayerListS2CPacket(PlayerListS2CPacket.Action.REMOVE_PLAYER, player));
+                    playerEntity.networkHandler.sendPacket(new PlayerRemoveS2CPacket(List.of(player.getUuid())));
+
                     if (settings.showFakeLeaveMessage()) {
-                        playerEntity.sendMessage(MutableText.of(new FakeTranslatableTextContent("multiplayer.player.left", player.getDisplayName())).formatted(Formatting.YELLOW));
+                        vanish.getServer().getPlayerManager().broadcast( MutableText.of(new FakeTranslatableTextContent("multiplayer.player.left", null, new Object[]{player.getDisplayName()})).formatted(Formatting.YELLOW), false);
                     }
                     playerEntity.networkHandler.sendPacket(new EntitiesDestroyS2CPacket(player.getId()));
                 }
@@ -229,7 +222,7 @@ public final class VanishCommand {
                         playerEntity.networkHandler.sendPacket(new PlayerSpawnS2CPacket(player));
                         updateEquipment(player, playerEntity);
                         if (settings.showFakeJoinMessage()) {
-                            playerEntity.sendMessage(MutableText.of(new FakeTranslatableTextContent("multiplayer.player.joined", player.getDisplayName())).formatted(Formatting.YELLOW));
+                            vanish.getServer().getPlayerManager().broadcast( MutableText.of(new FakeTranslatableTextContent("multiplayer.player.joined", null, new Object[]{player.getDisplayName()})).formatted(Formatting.YELLOW), false);
                         }
                     }
                 });
@@ -258,7 +251,7 @@ public final class VanishCommand {
 
     public static void removeFakePlayerListEntry(ServerPlayerEntity player) {
         if (vanishStatusEntity == null) return;
-        player.networkHandler.sendPacket(new PlayerListS2CPacket(PlayerListS2CPacket.Action.REMOVE_PLAYER, vanishStatusEntity));
+        player.networkHandler.sendPacket(new PlayerRemoveS2CPacket(List.of(vanishStatusEntity.getUuid())));
     }
 
     private static void updateEquipment(ServerPlayerEntity vanishingPlayer, ServerPlayerEntity receiver) {
@@ -277,7 +270,8 @@ public final class VanishCommand {
     }
 
     private static boolean sourceIsCommandblock(ServerCommandSource source) {
-        return source.getName().equals("@") || source.getWorld().getBlockEntity(new BlockPos(source.getPosition())) instanceof CommandBlockBlockEntity;
+        Vec3i vector = new Vec3i((int)source.getPosition().getX(), (int)source.getPosition().getY(), (int)source.getPosition().getZ());
+        return source.getName().equals("@") || source.getWorld().getBlockEntity(new BlockPos(vector)) instanceof CommandBlockBlockEntity;
     }
 
     private static int reloadSettings(ServerCommandSource source) {
@@ -311,9 +305,7 @@ public final class VanishCommand {
                 vanishedPlayersString.append(",\n");
             }
         }
-
         executor.sendMessage(Text.of(vanishedPlayersString.toString()));
-
         return 1;
     }
 

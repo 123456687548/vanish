@@ -8,7 +8,6 @@ import eu.vanish.data.VanishedList;
 import eu.vanish.data.VanishedPlayer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import eu.vanish.util.FileManager;
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.minecraft.network.packet.s2c.play.EntitiesDestroyS2CPacket;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
