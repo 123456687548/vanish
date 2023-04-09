@@ -3,7 +3,6 @@ package eu.vanish.commands;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import eu.vanish.Vanish;
-import eu.vanish.data.VanishedPlayer;
 import net.minecraft.command.argument.EntityArgumentType;
 import net.minecraft.command.argument.MessageArgumentType;
 import net.minecraft.entity.Entity;

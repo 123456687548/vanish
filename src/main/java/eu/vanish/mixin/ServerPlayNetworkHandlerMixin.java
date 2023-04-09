@@ -8,16 +8,11 @@ import eu.vanish.exeptions.NoTranslateableMessageException;
 import eu.vanish.mixinterface.EntityIDProvider;
 import eu.vanish.mixinterface.IItemPickupAnimationS2CPacket;
 import eu.vanish.mixinterface.IPlayerListS2CPacket;
-import io.netty.util.concurrent.Future;
-import io.netty.util.concurrent.GenericFutureListener;
-import net.minecraft.class_7648;
-import net.minecraft.network.Packet;
-import net.minecraft.network.packet.c2s.play.ChatMessageC2SPacket;
+import net.minecraft.network.packet.Packet;
 import net.minecraft.network.packet.s2c.play.*;
 import net.minecraft.server.network.ServerPlayNetworkHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.*;
-import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -33,8 +28,8 @@ public abstract class ServerPlayNetworkHandlerMixin {
     @Shadow
     public ServerPlayerEntity player;
 
-    @Inject(at = @At("HEAD"), cancellable = true, method = "sendPacket(Lnet/minecraft/network/Packet;Lnet/minecraft/class_7648;)V")
-    private void onSendPacket(Packet<?> packet, @Nullable class_7648 arg, CallbackInfo ci) {
+    @Inject(at = @At("HEAD"), cancellable = true, method = "sendPacket(Lnet/minecraft/network/packet/Packet;)V")
+    private void onSendPacket(Packet<?> packet,  CallbackInfo ci) {
         if (!Vanish.INSTANCE.isActive()) {
             return;
         }
@@ -47,7 +42,7 @@ public abstract class ServerPlayNetworkHandlerMixin {
 
         if (settings.removeChatMessage()) {
             if (packet instanceof ChatMessageS2CPacket chatMessagePacket) {
-                if (Vanish.INSTANCE.vanishedPlayers.isVanished(chatMessagePacket.message().signedHeader().sender())) {
+                if (Vanish.INSTANCE.vanishedPlayers.isVanished(chatMessagePacket.sender())) {
                     ci.cancel();
                 }
             }
@@ -129,16 +124,16 @@ public abstract class ServerPlayNetworkHandlerMixin {
         IPlayerListS2CPacket playerListS2CPacket = (IPlayerListS2CPacket) packet;
         PlayerListS2CPacket.Action action = playerListS2CPacket.getActionOnServer();
 
-        if (action.equals(PlayerListS2CPacket.Action.REMOVE_PLAYER) || action.equals(PlayerListS2CPacket.Action.UPDATE_LATENCY) || action.equals(PlayerListS2CPacket.Action.UPDATE_GAME_MODE)) {
+        if (action.equals(PlayerListS2CPacket.Action.UPDATE_LISTED) || action.equals(PlayerListS2CPacket.Action.UPDATE_LATENCY) || action.equals(PlayerListS2CPacket.Action.UPDATE_GAME_MODE)) {
             return;
         }
 
         //todo maybe error
-        playerListS2CPacket.getEntriesOnServer().removeIf(entry -> {
-            VanishedPlayer entryPlayer = Vanish.INSTANCE.vanishedPlayers.get(entry.getProfile());
+     /*   playerListS2CPacket. getEntriesOnServer().removeIf(entry -> {
+            VanishedPlayer entryPlayer = Vanish.INSTANCE.vanishedPlayers.get(entry.profile());
             if (entryPlayer == null) return false;
-            return entryPlayer.getUUID().equals(entry.getProfile().getId()) && !entryPlayer.getUUID().equals(player.getUuid());
-        });
+            return entryPlayer.getUUID().equals(entry.profile().getId()) && !entryPlayer.getUUID().equals(player.getUuid());
+        }); */
     }
 
     private TranslatableTextContent getTranslateableTextFromPacket(GameMessageS2CPacket packet) throws NoTranslateableMessageException {
