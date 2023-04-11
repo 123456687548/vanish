@@ -26,23 +26,12 @@ public class PlayerManagerMixin {
     private void onPlayerConnect(ClientConnection connection, ServerPlayerEntity player, CallbackInfo ci) {
         System.out.println("Player connecting: " + player.getEntityName());
         Vanish.INSTANCE.onPlayerConnect(player);
-      //  VanishCommand.sendFakePlayerListEntry(player);
         VanishCommand.sendFakePlayerListEntry(player, players.stream().filter( playerfd -> Vanish.INSTANCE.vanishedPlayers.isNotVanished(playerfd.getUuid())).toList());
+        }
 
-    }
-
-//THIS WORKS DONT TOUCH
     @Inject(method = "getPlayerList", at = @At("RETURN"), cancellable = true)
             private void onGetPlayerList(CallbackInfoReturnable<java.util.List<ServerPlayerEntity>> cir){
-      //   players.stream().filter( player -> Vanish.INSTANCE.vanishedPlayers.isNotVanished(player.getUuid())).toList();
-//System.out.println("Old list");
-       // players.forEach(System.out::println);
         List<ServerPlayerEntity> newPlayers =  players.stream().filter( player -> Vanish.INSTANCE.vanishedPlayers.isNotVanished(player.getUuid())).toList();
-     //   System.out.println("new list");
-
-     //   newPlayers.forEach(System.out::println);
-
         cir.setReturnValue( newPlayers);
-
         }
 }

@@ -40,20 +40,4 @@ public class ServerMetadataMixin {
             cir.setReturnValue(newPlayers);
         }
     }
-
-
-  /*  @Inject(at = @At("HEAD"), method = "players")
-    private void onGetPlayers(CallbackInfoReturnable<ServerMetadata.Players> ci) {
-        if (Vanish.INSTANCE.isActive() && Vanish.INSTANCE.getSettings().fakePlayerCount()) {
-            List<GameProfile> gameProfiles = new ArrayList<>();
-
-            Vanish.INSTANCE.getServer().getPlayerManager().getPlayerList().forEach(player -> {
-                GameProfile profile = player.getGameProfile();
-                if (Vanish.INSTANCE.vanishedPlayers.isNotVanished(player)) {
-                    gameProfiles.add(profile);
-                }
-            });
-            players = Optional.of(new ServerMetadata.Players(players.get().max(), Vanish.INSTANCE.getFakePlayerCount(), gameProfiles));
-        }
-    } */
 }
