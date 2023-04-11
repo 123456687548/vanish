@@ -63,6 +63,7 @@ public enum Vanish {
         VanishedPlayer vanishedPlayer = vanishedPlayers.get(player.getUuid());
 
         if (vanishedPlayer == null) return;
+        System.out.println("Connecting player is a vanished player");
 
         vanishedPlayer.setEntityId(player.getId());
 

@@ -3,11 +3,11 @@ package eu.vanish.mixin;
 import eu.vanish.Vanish;
 import eu.vanish.data.FakeTranslatableTextContent;
 import eu.vanish.data.Settings;
-import eu.vanish.data.VanishedPlayer;
 import eu.vanish.exeptions.NoTranslateableMessageException;
 import eu.vanish.mixinterface.EntityIDProvider;
 import eu.vanish.mixinterface.IItemPickupAnimationS2CPacket;
 import eu.vanish.mixinterface.IPlayerListS2CPacket;
+import net.minecraft.network.PacketCallbacks;
 import net.minecraft.network.packet.Packet;
 import net.minecraft.network.packet.s2c.play.*;
 import net.minecraft.server.network.ServerPlayNetworkHandler;
@@ -28,12 +28,25 @@ public abstract class ServerPlayNetworkHandlerMixin {
     @Shadow
     public ServerPlayerEntity player;
 
+     @Inject(at = @At("HEAD"), cancellable = true, method = "sendPacket(Lnet/minecraft/network/packet/Packet;Lnet/minecraft/network/PacketCallbacks;)V")
+    private void onSendPacketmsg(Packet<?> packet, PacketCallbacks callbacks, CallbackInfo ci) {
+        if (!Vanish.INSTANCE.isActive()) {
+            return;
+        }
+         if (packet instanceof GameMessageS2CPacket gameMessagePacket) {
+             if (shouldStopMessage(gameMessagePacket)) {
+                 ci.cancel();
+             }
+         }
+        }
+
     @Inject(at = @At("HEAD"), cancellable = true, method = "sendPacket(Lnet/minecraft/network/packet/Packet;)V")
     private void onSendPacket(Packet<?> packet,  CallbackInfo ci) {
         if (!Vanish.INSTANCE.isActive()) {
             return;
         }
 
+        // OLD DOESN'T USE THIS METHOD
         if (packet instanceof GameMessageS2CPacket gameMessagePacket) {
             if (shouldStopMessage(gameMessagePacket)) {
                 ci.cancel();
@@ -84,7 +97,6 @@ public abstract class ServerPlayNetworkHandlerMixin {
     private boolean shouldStopMessage(GameMessageS2CPacket packet) {
         try {
             TranslatableTextContent message = getTranslateableTextFromPacket(packet);
-
             if (!settings.removeChatMessage() && message.getKey().contains("chat.type.text")) {
                 return false;
             }
@@ -125,15 +137,7 @@ public abstract class ServerPlayNetworkHandlerMixin {
         PlayerListS2CPacket.Action action = playerListS2CPacket.getActionOnServer();
 
         if (action.equals(PlayerListS2CPacket.Action.UPDATE_LISTED) || action.equals(PlayerListS2CPacket.Action.UPDATE_LATENCY) || action.equals(PlayerListS2CPacket.Action.UPDATE_GAME_MODE)) {
-            return;
         }
-
-        //todo maybe error
-     /*   playerListS2CPacket. getEntriesOnServer().removeIf(entry -> {
-            VanishedPlayer entryPlayer = Vanish.INSTANCE.vanishedPlayers.get(entry.profile());
-            if (entryPlayer == null) return false;
-            return entryPlayer.getUUID().equals(entry.profile().getId()) && !entryPlayer.getUUID().equals(player.getUuid());
-        }); */
     }
 
     private TranslatableTextContent getTranslateableTextFromPacket(GameMessageS2CPacket packet) throws NoTranslateableMessageException {
