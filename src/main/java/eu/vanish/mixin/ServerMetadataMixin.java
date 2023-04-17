@@ -2,25 +2,20 @@ package eu.vanish.mixin;
 
 import com.mojang.authlib.GameProfile;
 import eu.vanish.Vanish;
-import eu.vanish.data.Settings;
 import net.minecraft.server.ServerMetadata;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Mixin(ServerMetadata.class)
 public class ServerMetadataMixin {
-
-    @Shadow
-    private ServerMetadata.Players players;
-
-    @Inject(at = @At("HEAD"), method = "getPlayers")
-    private void onGetPlayers(CallbackInfoReturnable<ServerMetadata.Players> ci) {
+    @Inject(at = @At("HEAD"), method = "players", cancellable = true)
+    private void onGetPlayers(CallbackInfoReturnable<Optional<ServerMetadata.Players>> ci) {
         if (Vanish.INSTANCE.isActive() && Vanish.INSTANCE.getSettings().fakePlayerCount()) {
             List<GameProfile> gameProfiles = new ArrayList<>();
 
@@ -31,8 +26,8 @@ public class ServerMetadataMixin {
                 }
             });
 
-            players = new ServerMetadata.Players(players.getPlayerLimit(), Vanish.INSTANCE.getFakePlayerCount());
-            players.setSample(gameProfiles.toArray(new GameProfile[0]));
+            int maxPlayerCount = Vanish.INSTANCE.getServer().getPlayerManager().getMaxPlayerCount();
+            ci.setReturnValue(Optional.of(new ServerMetadata.Players(maxPlayerCount, Vanish.INSTANCE.getFakePlayerCount(), gameProfiles)));
         }
     }
 }

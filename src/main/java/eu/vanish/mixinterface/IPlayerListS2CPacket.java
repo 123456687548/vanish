@@ -6,5 +6,5 @@ import java.util.List;
 
 public interface IPlayerListS2CPacket {
     List<PlayerListS2CPacket.Entry> getEntriesOnServer();
-    PlayerListS2CPacket.Action getActionOnServer();
+    void setEntriesOnServer(List<PlayerListS2CPacket.Entry> entries);
 }

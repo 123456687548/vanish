@@ -133,7 +133,7 @@ public class VanishedList {
         }
     }
 
-    public Collection<VanishedPlayer> getVanishedPlayers(){
+    public Collection<VanishedPlayer> getVanishedPlayers() {
         return vanishedPlayers.values();
     }
 }
