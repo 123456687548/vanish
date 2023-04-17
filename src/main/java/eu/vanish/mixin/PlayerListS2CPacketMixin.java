@@ -4,20 +4,17 @@ import eu.vanish.mixinterface.IPlayerListS2CPacket;
 import net.minecraft.network.packet.s2c.play.PlayerListS2CPacket;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Mutable;
 import org.spongepowered.asm.mixin.Shadow;
 
-import java.util.EnumSet;
 import java.util.List;
 
 @Mixin(PlayerListS2CPacket.class)
 public class PlayerListS2CPacketMixin implements IPlayerListS2CPacket {
+    @Mutable
     @Shadow
     @Final
     private List<PlayerListS2CPacket.Entry> entries;
-
-    @Shadow
-    @Final
-    private EnumSet<PlayerListS2CPacket.Action> actions;
 
     @Override
     public List<PlayerListS2CPacket.Entry> getEntriesOnServer() {
@@ -25,7 +22,7 @@ public class PlayerListS2CPacketMixin implements IPlayerListS2CPacket {
     }
 
     @Override
-    public EnumSet<PlayerListS2CPacket.Action> getActionsOnServer() {
-        return actions;
+    public void setEntriesOnServer(List<PlayerListS2CPacket.Entry> entries) {
+        this.entries = entries;
     }
 }

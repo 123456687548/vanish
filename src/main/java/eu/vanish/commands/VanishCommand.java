@@ -3,7 +3,6 @@ package eu.vanish.commands;
 import com.google.common.collect.Lists;
 import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.CommandDispatcher;
-import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.datafixers.util.Pair;
 import eu.vanish.Vanish;
 import eu.vanish.data.FakeTranslatableTextContent;
@@ -278,9 +277,7 @@ public final class VanishCommand {
     }
 
     private static boolean sourceIsCommandblock(ServerCommandSource source) {
-        //todo change
-        return false;
-//        return source.getName().equals("@") || source.getWorld().getBlockEntity(new BlockPos(source.getPosition())) instanceof CommandBlockBlockEntity;
+        return source.getName().equals("@") || source.getWorld().getBlockEntity(new BlockPos((int) source.getPosition().x, (int) source.getPosition().y, (int) source.getPosition().z)) instanceof CommandBlockBlockEntity;
     }
 
     private static int reloadSettings(ServerCommandSource source) {

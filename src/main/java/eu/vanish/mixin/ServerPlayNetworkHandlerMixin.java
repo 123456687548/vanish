@@ -3,30 +3,29 @@ package eu.vanish.mixin;
 import eu.vanish.Vanish;
 import eu.vanish.data.FakeTranslatableTextContent;
 import eu.vanish.data.Settings;
-import eu.vanish.data.VanishedPlayer;
 import eu.vanish.exeptions.NoTranslateableMessageException;
 import eu.vanish.mixinterface.EntityIDProvider;
 import eu.vanish.mixinterface.IItemPickupAnimationS2CPacket;
 import eu.vanish.mixinterface.IPlayerListS2CPacket;
-import io.netty.util.concurrent.Future;
-import io.netty.util.concurrent.GenericFutureListener;
 import net.minecraft.network.PacketCallbacks;
 import net.minecraft.network.packet.Packet;
-import net.minecraft.network.packet.c2s.play.ChatMessageC2SPacket;
 import net.minecraft.network.packet.s2c.play.*;
 import net.minecraft.server.network.ServerPlayNetworkHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.*;
 import org.jetbrains.annotations.Nullable;
+import org.spongepowered.asm.mixin.Debug;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.EnumSet;
+import java.util.List;
 
+@Debug(export = true)
 @Mixin(ServerPlayNetworkHandler.class)
 public abstract class ServerPlayNetworkHandlerMixin {
     private final Settings settings = Vanish.INSTANCE.getSettings();
@@ -128,21 +127,21 @@ public abstract class ServerPlayNetworkHandlerMixin {
 
     private void removeVanishedPlayers(Packet<?> packet) {
         IPlayerListS2CPacket playerListS2CPacket = (IPlayerListS2CPacket) packet;
-        EnumSet<PlayerListS2CPacket.Action> actions = playerListS2CPacket.getActionsOnServer();
 
-//        for(PlayerListS2CPacket.Action action : actions) {
-//            //todo vielleicht falsch
-//            if (action.equals(PlayerListS2CPacket.Action.UPDATE_LISTED) || action.equals(PlayerListS2CPacket.Action.UPDATE_LATENCY) || action.equals(PlayerListS2CPacket.Action.UPDATE_GAME_MODE)) {
-//                return;
-//            }
-//        }
+        List<PlayerListS2CPacket.Entry> fakeEntries = new ArrayList<>();
 
-        //todo maybe error
-//        playerListS2CPacket.getEntriesOnServer().removeIf(entry -> {
-//            VanishedPlayer entryPlayer = Vanish.INSTANCE.vanishedPlayers.get(entry.profile());
-//            if (entryPlayer == null) return false;
-//            return entryPlayer.getUUID().equals(entry.profile().getId()) && !entryPlayer.getUUID().equals(player.getUuid());
-//        });
+        playerListS2CPacket.getEntriesOnServer().forEach(entry -> {
+            if (player.getUuid().equals(entry.profileId())) { // allawys see yourself -> show
+                fakeEntries.add(entry);
+                return;
+            }
+
+            if (Vanish.INSTANCE.vanishedPlayers.isVanished(entry.profileId())) return; // entry is vanished -> don't show
+
+            fakeEntries.add(entry); // everything else -> show
+        });
+
+        playerListS2CPacket.setEntriesOnServer(fakeEntries);
     }
 
     private TranslatableTextContent getTranslateableTextFromPacket(GameMessageS2CPacket packet) throws NoTranslateableMessageException {
