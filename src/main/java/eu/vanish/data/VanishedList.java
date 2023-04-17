@@ -13,6 +13,7 @@ import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Optional;
 import java.util.UUID;
 
 import static eu.vanish.util.FileManager.ROOT_FOLDER;
@@ -133,7 +134,7 @@ public class VanishedList {
         }
     }
 
-    public Collection<VanishedPlayer> getVanishedPlayers(){
+    public Collection<VanishedPlayer> getVanishedPlayers() {
         return vanishedPlayers.values();
     }
 }
