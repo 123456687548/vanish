@@ -18,7 +18,9 @@
         "PlayerManagerMixin",
         "ServerMetadataMixin",
         "ServerPlayNetworkHandlerMixin",
-        "ServerWorldMixin"
+        "ServerWorldMixin",
+
+        "ServerPlayerInteractionManagerMixin"
     ],
     "injectors": {
         "defaultRequire": 1
