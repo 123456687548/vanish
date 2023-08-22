@@ -38,14 +38,14 @@ public final class OverwrittenMsgCommand {
             };
         } else {
             consumer2 = (text2) -> {
-                source.sendFeedback((Text.translatable("commands.message.display.outgoing", text2, message).formatted(Formatting.GRAY, Formatting.ITALIC)), false);
+                source.sendFeedback(() -> (Text.translatable("commands.message.display.outgoing", text2, message).formatted(Formatting.GRAY, Formatting.ITALIC)), false);
             };
         }
 
         for (ServerPlayerEntity target : targets) {
             if (Vanish.INSTANCE.vanishedPlayers.isVanished(target)) {
                 if (targets.size() == 1) {
-                    source.sendFeedback((Text.translatable("argument.entity.notfound.player").formatted(Formatting.RED)), false);
+                    source.sendFeedback(() -> (Text.translatable("argument.entity.notfound.player").formatted(Formatting.RED)), false);
                 }
             } else {
                 consumer2.accept(target.getDisplayName());
