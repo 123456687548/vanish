@@ -18,7 +18,8 @@
         "PlayerManagerMixin",
         "ServerMetadataMixin",
         "ServerPlayNetworkHandlerMixin",
-        "ServerWorldMixin"
+        "ServerWorldMixin",
+        "VibrationsCallbackMixin"
     ],
     "injectors": {
         "defaultRequire": 1

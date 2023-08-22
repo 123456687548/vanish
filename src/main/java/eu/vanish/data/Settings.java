@@ -26,6 +26,7 @@ public final class Settings {
     private boolean logUnvanishToConsole = false;
 
     private boolean vanishListCommand = false;
+    private boolean disableSculkSensorWhileVanished = true;
 
     private Settings() {
 
@@ -81,6 +82,10 @@ public final class Settings {
 
     public boolean isVanishListCommand() {
         return vanishListCommand;
+    }
+
+    public boolean isDisableSculkSensorWhileVanished() {
+        return disableSculkSensorWhileVanished;
     }
 
     public static Settings loadSettings() {
