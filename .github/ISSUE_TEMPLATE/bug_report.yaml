@@ -1,0 +1,79 @@
+name: Bug Report
+description: File a bug report
+title: "[Bug]: <title>"
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+        value: |
+          Thank you for submitting a bug report. Please search if your issue [already exists](https://github.com/MelvorIdle/melvoridle.github.io/labels/bug) before submitting a report.
+  - type: textarea
+    id: description
+    attributes:
+      label: Describe the bug
+      description: A clear and concise description of what the bug is.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction Steps
+      description: Steps to reproduce the behavior
+      placeholder: |
+        1. Go to '...'
+        2. Click on '....'
+        3. Scroll down to '....'
+        4. See error
+    validations:
+      required: false
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behaviour
+      description: A clear and concise description of what you expected to happen
+    validations:
+      required: false
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots
+      description: If applicable, add screenshots to help explain your problem.
+    validations:
+      required: false
+  - type: textarea
+    id: logs
+    attributes:
+      label: Console output
+      description: If applicable, add the console output to help explain your problem.
+    validations:
+      required: false
+  - type: input
+    id: gameversion
+    attributes:
+      label: Game version
+      description: The Minecraft version where the bug appears
+      placeholder: 1.20.1
+    validations:
+      required: true
+  - type: input
+    id: modversion
+    attributes:
+      label: Mod version
+      description: The Vanish mod version where the bug appears
+      placeholder: 1.4.4
+    validations:
+      required: true
+  - type: textarea
+    id: othermods
+    attributes:
+      label: Other mods installed
+      description: If other mods are installed, please add a list of them
+    validations:
+      required: false
+  - type: textarea
+    id: additional_context
+    attributes:
+      label: Additional context
+      description: Add any other context about the problem here.
+    validations:
+      required: false
