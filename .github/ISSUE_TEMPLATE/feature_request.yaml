@@ -1,0 +1,31 @@
+name: Feature request
+description: Suggest a feature for this mod
+title: "[Feature request]: <title>"
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+        value: |
+          Thank you for submitting a feature request. Please search if your idea [already exists](https://github.com/MelvorIdle/melvoridle.github.io/labels/enhancement) before submitting a report.
+  - type: textarea
+    id: description
+    attributes:
+      label: Describe the feature you'd like
+      description: A clear and concise description of what you want to happen.
+    validations:
+      required: true
+  - type: textarea
+    id: description_problem
+    attributes:
+      label: Is your feature request related to a problem? Please describe.
+      description: A clear and concise description of what the problem is. 
+      placeholder: Ex. I'm always frustrated when [...]
+    validations:
+      required: false
+  - type: textarea
+    id: additional_context
+    attributes:
+      label: Additional context
+      description: Add any other context or screenshots about the feature request here.
+    validations:
+      required: false
